@@ -40,6 +40,15 @@ const routes = [
     component: () => import('@/views/contain/index.vue'),
   },
   {
+    path: '/profile',
+    name: 'Profile',
+    meta: {
+      title: '个人信息',
+      requiresAuth: true, // 需要认证
+    },
+    component: () => import('@/views/profile/index.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     meta: {

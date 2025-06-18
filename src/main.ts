@@ -16,6 +16,7 @@ import 'virtual:uno.css';
 // DevUI
 import 'vue-devui/style.css';
 import '@devui-design/icons/icomoon/devui-icon.css';
+import 'element-plus/dist/index.css'
 
 import { ThemeServiceInit, devuiDarkTheme } from 'devui-theme';
 
