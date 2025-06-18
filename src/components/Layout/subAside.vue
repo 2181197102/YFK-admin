@@ -1,3 +1,4 @@
+<!--src/views/contain/components/subAside.vue-->
 <template>
   <!-- 有子节点渲染这个 -->
   <el-sub-menu :index="menu.path" v-if="menu?.children">
