@@ -1,4 +1,7 @@
-export const showMessage = (status: number | string): string => {
+// src/utils/http/axios/status.ts
+import { ElMessage } from 'element-plus';
+
+export const showMessage = (status: number | string): void => {
   let message = '';
   switch (status) {
     case 400:
@@ -35,7 +38,8 @@ export const showMessage = (status: number | string): string => {
       message = 'HTTP版本不受支持(505)';
       break;
     default:
-      message = `连接出错(${status})!`;
+      message = `连接出错(${status})`;
   }
-  return `${message}，请检查网络或联系管理员！`;
+
+  ElMessage.error(`${message}，请检查网络或联系管理员！`);
 };

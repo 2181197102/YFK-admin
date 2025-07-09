@@ -27,24 +27,41 @@ service.interceptors.request.use(
 
 // axios实例拦截响应
 service.interceptors.response.use(
-  (response: AxiosResponse) => {
-    if (response.status === 200) {
-      return response;
+    (response: AxiosResponse) => {
+        if (response.status === 200) {
+            return response;
+        }
+        showMessage(response.status);
+        return response;
+    },
+    (error: AxiosError) => {
+        const { response } = error;
+        if (response) {
+            const status = response.status;
+
+            showMessage(status);
+
+            // 处理 401 未授权（token 过期或无效）
+            if (status === 401) {
+                // 清除登录状态
+                localStorage.removeItem('access_token');
+
+                // 可选：还可调用 pinia 的 userStore.clearUser()，例如：
+                // import { useUserStore } from '@/store/modules/user';
+                // useUserStore().clearUser();
+
+                // 跳转到登录页（建议保留当前路径，便于回跳）
+                window.location.href = `/login?redirect=${encodeURIComponent(location.hash.slice(1))}`;
+            }
+
+            return Promise.reject(response.data || error);
+        } else {
+            showMessage('网络连接异常,请稍后再试!');
+            return Promise.reject(error);
+        }
     }
-    showMessage(response.status);
-    return response;
-  },
-  // 请求失败
-  (error: any) => {
-    const { response } = error;
-    if (response) {
-      // 请求已发出，但是不在2xx的范围
-      showMessage(response.status);
-      return Promise.reject(response.data);
-    }
-    showMessage('网络连接异常,请稍后再试!');
-  },
 );
+
 
 const request = <T = any>(config: AxiosRequestConfig): Promise<T> => {
   const conf = config;
