@@ -1,12 +1,6 @@
-export interface UserInfo {
-  id: number;
+// src/store/modules/user/types.ts
+export interface LoginMeta {
   username: string;
-  name: string;
-  age: number;
-  gender: string;
-  role_code: string;
-  role_name: string;
-  group_name: string | null;
-  enable?: boolean;
-  created_time?: string;
+  current_login_ip: string;
+  last_login_ip: string;
 }

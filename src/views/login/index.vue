@@ -58,9 +58,9 @@
             还没有账号？立即注册
           </el-button>
 
-          <el-button type="text" @click="fillTestData">
-            填充测试数据
-          </el-button>
+<!--          <el-button type="text" @click="fillTestData">-->
+<!--            填充测试数据-->
+<!--          </el-button>-->
         </div>
       </div>
     </div>

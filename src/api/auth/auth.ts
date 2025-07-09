@@ -1,6 +1,6 @@
 // src/api/auth/auth.ts
 import { get, post } from '@/utils/http/axios';
-import type { LoginResponse, RegisterRequest, UserProfile, ChangePasswordRequest } from './types';
+import type { LoginResponse, RegisterRequest, UserProfile, ChangePasswordRequest, RoleListResponse, GroupListResponse } from './types';
 
 // 登录
 export const login = (username: string, password: string): Promise<LoginResponse> => {
@@ -27,7 +27,7 @@ export const login = (username: string, password: string): Promise<LoginResponse
 
 // 注册
 export const register = (data: RegisterRequest): Promise<any> => {
-        return post({
+    return post({
         url: '/auth/register',
         data,
     });
@@ -59,5 +59,20 @@ export const changePassword = (data: ChangePasswordRequest): Promise<any> => {
 export const refreshToken = (): Promise<LoginResponse> => {
     return post({
         url: '/auth/refresh',
+    });
+};
+
+// 获取角色列表
+export const getRoleList = (): Promise<RoleListResponse> => {
+    return get({
+        url: '/user_management/roles',
+    });
+};
+
+// 获取组列表
+export const getGroupList = (params?: { page?: number; per_page?: number; search?: string }): Promise<GroupListResponse> => {
+    return get({
+        url: '/user_management/groups',
+        params,
     });
 };

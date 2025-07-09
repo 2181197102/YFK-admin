@@ -1,88 +1,64 @@
+// src/store/modules/user/index.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { login as loginAPI, getUserProfile, logout as logoutAPI } from '@/api/auth/auth';
-import type { LoginResponse, UserProfile } from '@/api/auth/types';
-import type { UserInfo } from './types';
+import { login as loginAPI, logout as logoutAPI, getUserProfile, getRoleList, getGroupList } from '@/api/auth/auth';
+import type { LoginResponse, UserProfile, Role, Group, RoleListResponse, GroupListResponse } from '@/api/auth/types';
+import type { LoginMeta } from './types';
 
 export const useUserStore = defineStore('user', () => {
-  /* -------------------------------------------------------------------------- */
-  /*                                State & refs                                */
-  /* -------------------------------------------------------------------------- */
-  // 单点真源：token / userInfo。其余全部通过计算/方法派生
   const token = ref<string>(localStorage.getItem('access_token') || '');
-  const userInfo = ref<UserInfo | null>(null);
+  const loginMeta = ref<LoginMeta | null>(null); // 替代原来的 userInfo
+  const userProfile = ref<UserProfile | null>(null);
+  const roles = ref<Role[]>([]);
+  const groups = ref<Group[]>([]);
 
-  /* -------------------------------------------------------------------------- */
-  /*                              Computed helpers                               */
-  /* -------------------------------------------------------------------------- */
-  // 只要持有 token 即认为已登录；业务上再校验 userInfo
   const isLoggedIn = computed(() => !!token.value);
 
-  /* -------------------------------------------------------------------------- */
-  /*                                  Actions                                   */
-  /* -------------------------------------------------------------------------- */
-  /**
-   * 根据 localStorage 恢复登录态（在路由守卫中调用）
-   */
   const initUser = () => {
     if (!token.value) {
       token.value = localStorage.getItem('access_token') || '';
     }
 
-    if (!userInfo.value) {
-      const cached = localStorage.getItem('userInfo');
-      if (cached) {
-        try {
-          userInfo.value = JSON.parse(cached) as UserInfo;
-        } catch (_) {
-          // 本地数据损坏则清理
-          clearUser();
-        }
+    const cachedMeta = localStorage.getItem('loginMeta');
+    if (cachedMeta) {
+      try {
+        loginMeta.value = JSON.parse(cachedMeta);
+      } catch {
+        loginMeta.value = null;
+        localStorage.removeItem('loginMeta');
       }
     }
+
+    // 不再从 localStorage 恢复 loginMeta，因为不缓存用户信息
+    loginMeta.value = null;
+    userProfile.value = null;
   };
 
-  /**
-   * 清空本地登录状态（在路由守卫 / 登出流程中调用）
-   */
   const clearUser = () => {
     token.value = '';
-    userInfo.value = null;
+    loginMeta.value = null;
+    userProfile.value = null;
+    roles.value = [];
+    groups.value = [];
     localStorage.removeItem('access_token');
-    localStorage.removeItem('userInfo');
+    localStorage.removeItem('loginMeta');
   };
 
-  /**
-   * 登录：成功后写入 token & userInfo，并持久化
-   */
   const login = async (username: string, password: string): Promise<LoginResponse> => {
     const response = await loginAPI(username, password);
-
-    // token
+    // console.log('response: ',response)
     token.value = response.access_token;
     localStorage.setItem('access_token', response.access_token);
 
-    // profile
-    userInfo.value = response.user;
-    localStorage.setItem('userInfo', JSON.stringify(response.user));
+    // 注意这里是只保存非敏感字段
+    loginMeta.value = response.user;
+    // console.log('loginMeta: ',loginMeta.value)
+    // console.log('response.user: ',JSON.stringify(response.user))
+    localStorage.setItem('loginMeta', JSON.stringify(response.user));
 
     return response;
   };
 
-  /**
-   * 拉取远端用户资料；用于 token 存在但 userInfo 缺失的场景
-   */
-  const fetchUserProfile = async () => {
-    if (!token.value) return;
-
-    const profile: UserProfile = await getUserProfile();
-    userInfo.value = profile;
-    localStorage.setItem('userInfo', JSON.stringify(profile));
-  };
-
-  /**
-   * 退出登录：调用远端接口后本地清理
-   */
   const logout = async () => {
     try {
       await logoutAPI();
@@ -91,22 +67,26 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  /* -------------------------------------------------------------------------- */
-  /*                                  Exports                                   */
-  /* -------------------------------------------------------------------------- */
+  // 获取用户资料
+  const fetchUserProfile = async (): Promise<UserProfile> => {
+    const profile = await getUserProfile();
+    // console.log('profile: ', profile)
+    userProfile.value = profile.user;
+    return profile;
+  };
+
+
   return {
-    // state
     token,
-    userInfo,
-
-    // getters
+    loginMeta,
+    userProfile,
+    roles,
+    groups,
     isLoggedIn,
-
-    // actions
     initUser,
     clearUser,
     login,
-    fetchUserProfile,
     logout,
+    fetchUserProfile,
   };
 });

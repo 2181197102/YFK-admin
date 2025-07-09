@@ -6,18 +6,17 @@ import { useUserStore } from '@/store/modules/user';
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
-// 定义路由
 const routes = [
   {
     path: '/',
-    redirect: '/login', // 根路径重定向到登录页
+    redirect: '/login',
   },
   {
     path: '/login',
     name: 'Login',
     meta: {
       title: '登录',
-      requiresAuth: false, // 不需要认证
+      requiresAuth: false,
     },
     component: () => import('@/views/login/index.vue'),
   },
@@ -26,7 +25,7 @@ const routes = [
     name: 'Register',
     meta: {
       title: '注册',
-      requiresAuth: false, // 不需要认证
+      requiresAuth: false,
     },
     component: () => import('@/views/register/index.vue'),
   },
@@ -35,7 +34,7 @@ const routes = [
     name: 'Layout',
     meta: {
       title: '主页',
-      requiresAuth: true, // 需要认证
+      requiresAuth: true,
     },
     component: () => import('@/views/contain/index.vue'),
   },
@@ -44,7 +43,7 @@ const routes = [
     name: 'Profile',
     meta: {
       title: '个人信息',
-      requiresAuth: true, // 需要认证
+      requiresAuth: true,
     },
     component: () => import('@/views/profile/index.vue'),
   },
@@ -69,35 +68,23 @@ router.beforeEach(async (to, _from, next) => {
 
   const userStore = useUserStore();
 
-  // 初始化用户信息（从localStorage恢复）
-  if (!userStore.userInfo && userStore.token) {
-    userStore.initUser();
-  }
+  // 重新初始化登录状态（恢复 token）
+  userStore.initUser();
 
   // 检查是否需要认证
   if (to.meta.requiresAuth) {
     if (!userStore.isLoggedIn) {
-      // 未登录，重定向到登录页
+      // 未登录，跳转到登录页
       next({
         path: '/login',
-        query: { redirect: to.fullPath }, // 保存原本要访问的页面
+        query: { redirect: to.fullPath },
       });
       return;
     }
 
-    // 如果有token但没有用户信息，尝试获取用户信息
-    if (userStore.token && !userStore.userInfo) {
-      try {
-        await userStore.fetchUserProfile();
-      } catch (error) {
-        // 获取用户信息失败，清除token并重定向到登录页
-        userStore.clearUser();
-        next('/login');
-        return;
-      }
-    }
+    // 不再尝试拉取用户资料
+    // 不再检查 userInfo
   } else {
-    // 如果已登录用户访问登录或注册页，重定向到主页
     if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
       next('/contain');
       return;
@@ -106,7 +93,7 @@ router.beforeEach(async (to, _from, next) => {
 
   // 设置页面标题
   if (to.meta.title) {
-    document.title = `${to.meta.title} - 医疗管理系统`;
+    document.title = `${to.meta.title} - 医防康系统`;
   }
 
   next();

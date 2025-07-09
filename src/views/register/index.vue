@@ -6,115 +6,177 @@
         <p>创建您的账号</p>
       </div>
 
-      <a-form
+      <el-form
           ref="formRef"
           :model="registerForm"
           :rules="rules"
-          layout="vertical"
-          @submit="handleRegister"
+          label-position="top"
+          size="large"
+          @submit.prevent="handleRegister"
       >
-        <a-form-item field="username" label="用户名">
-          <a-input
+        <el-form-item label="用户名" prop="username">
+          <el-input
               v-model="registerForm.username"
               placeholder="请输入用户名"
-              size="large"
+              clearable
           />
-        </a-form-item>
+        </el-form-item>
 
-        <a-form-item field="password" label="密码">
-          <a-input-password
+        <el-form-item label="密码" prop="password">
+          <el-input
               v-model="registerForm.password"
+              type="password"
               placeholder="请输入密码"
-              size="large"
+              show-password
+              clearable
           />
-        </a-form-item>
+        </el-form-item>
 
-        <a-form-item field="confirmPassword" label="确认密码">
-          <a-input-password
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input
               v-model="registerForm.confirmPassword"
+              type="password"
               placeholder="请再次输入密码"
-              size="large"
+              show-password
+              clearable
           />
-        </a-form-item>
+        </el-form-item>
 
-        <a-form-item field="name" label="姓名">
-          <a-input
+        <el-form-item label="姓名" prop="name">
+          <el-input
               v-model="registerForm.name"
               placeholder="请输入真实姓名"
-              size="large"
+              clearable
           />
-        </a-form-item>
+        </el-form-item>
 
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item field="age" label="年龄">
-              <a-input-number
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="年龄" prop="age">
+              <el-input-number
                   v-model="registerForm.age"
                   placeholder="年龄"
-                  size="large"
                   :min="1"
                   :max="120"
                   style="width: 100%"
               />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item field="gender" label="性别">
-              <a-select
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="性别" prop="gender">
+              <el-select
                   v-model="registerForm.gender"
                   placeholder="请选择性别"
-                  size="large"
+                  clearable
+                  style="width: 100%"
               >
-                <a-option value="男">男</a-option>
-                <a-option value="女">女</a-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-        </a-row>
+                <el-option label="男" value="M" />
+                <el-option label="女" value="F" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <a-form-item field="role" label="角色">
-          <a-select
+        <el-form-item label="角色" prop="role">
+          <el-select
               v-model="registerForm.role"
               placeholder="请选择角色"
-              size="large"
+              :loading="rolesLoading"
+              clearable
+              style="width: 100%"
+              @change="handleRoleChange"
           >
-            <a-option value="PATIENT">患者</a-option>
-            <a-option value="DOCTOR">医生</a-option>
-            <a-option value="NURSE">护士</a-option>
-          </a-select>
-        </a-form-item>
+            <el-option
+                v-for="role in filteredRoles"
+                :key="role.id"
+                :value="role.role_name"
+                :label="role.role_name"
+            >
+              <span>{{ role.role_name }}</span>
+              <span class="role-description">{{ role.role_code }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
 
-        <a-form-item>
-          <a-button
+        <!-- 授权密码字段，只有非患者角色才显示 -->
+        <el-form-item
+            v-if="showAuthPassword"
+            label="授权密码"
+            prop="authPassword"
+        >
+          <el-input
+              v-model="registerForm.authPassword"
+              type="password"
+              placeholder="请输入授权密码"
+              show-password
+              clearable
+          />
+          <div class="auth-password-tip">
+            <el-text size="small" type="info">
+              * 选择非患者角色需要输入授权密码
+            </el-text>
+          </div>
+        </el-form-item>
+
+        <el-form-item label="所属组织" prop="group">
+          <el-select
+              v-model="registerForm.group"
+              placeholder="请选择组织"
+              :loading="groupsLoading"
+              clearable
+              style="width: 100%"
+          >
+            <el-option
+                v-for="group in groups"
+                :key="group.id"
+                :value="group.group_name"
+                :label="group.group_name"
+            >
+              <span>{{ group.group_name }}</span>
+              <span class="group-user-count">{{ group.user_count }}人</span>
+            </el-option>
+            <template #empty>
+              <div class="empty-result">
+                <el-empty description="暂无数据" />
+              </div>
+            </template>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item>
+          <el-button
               type="primary"
-              html-type="submit"
               size="large"
-              long
+              style="width: 100%"
               :loading="loading"
+              @click="handleRegister"
           >
             注册
-          </a-button>
-        </a-form-item>
-      </a-form>
+          </el-button>
+        </el-form-item>
+      </el-form>
 
       <div class="register-footer">
-        <a-divider>或</a-divider>
-        <a-button type="text" @click="goToLogin">
+        <el-divider>或</el-divider>
+        <el-button type="text" @click="goToLogin">
           已有账号？立即登录
-        </a-button>
+        </el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { Message } from '@arco-design/web-vue';
-import { register } from '@/api/auth/auth';
-import type { RegisterRequest } from '@/api/auth/types';
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { register, getRoleList, getGroupList } from '@/api/auth/auth'
+import type { RegisterRequest, Role, Group } from '@/api/auth/types'
 
-const router = useRouter();
+const router = useRouter()
+
+// 从环境变量中获取授权密码
+const AUTH_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD
 
 // 表单数据
 const registerForm = reactive({
@@ -125,54 +187,145 @@ const registerForm = reactive({
   age: undefined as number | undefined,
   gender: '',
   role: '',
-});
+  group: '',
+  authPassword: '', // 新增授权密码字段
+})
+
+// 角色和组织数据
+const roles = ref<Role[]>([])
+const groups = ref<Group[]>([])
+const rolesLoading = ref(false)
+const groupsLoading = ref(false)
+
+// 计算属性：过滤掉管理员角色
+const filteredRoles = computed(() => {
+  return roles.value.filter(role =>
+      role.role_name !== '管理员' &&
+      role.role_code !== 'admin' &&
+      role.role_code !== 'ADMIN'
+  )
+})
+
+// 计算属性：判断是否显示授权密码字段
+const showAuthPassword = computed(() => {
+  return registerForm.role && registerForm.role !== '患者'
+})
+
+// 自定义验证器：授权密码验证
+const validateAuthPassword = (rule: any, value: string, callback: Function) => {
+  if (showAuthPassword.value) {
+    if (!value) {
+      callback(new Error('请输入授权密码'))
+    } else if (value !== AUTH_PASSWORD) {
+      callback(new Error('授权密码错误'))
+    } else {
+      callback()
+    }
+  } else {
+    callback()
+  }
+}
 
 // 表单验证规则
-const rules = {
+const rules = reactive<FormRules>({
   username: [
-    { required: true, message: '请输入用户名' },
-    { minLength: 3, message: '用户名至少3个字符' },
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, message: '用户名至少3个字符', trigger: 'blur' },
   ],
   password: [
-    { required: true, message: '请输入密码' },
-    { minLength: 6, message: '密码至少6个字符' },
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码至少6个字符', trigger: 'blur' },
   ],
   confirmPassword: [
-    { required: true, message: '请确认密码' },
+    { required: true, message: '请确认密码', trigger: 'blur' },
     {
-      validator: (value: string, callback: Function) => {
+      validator: (rule: any, value: string, callback: Function) => {
         if (value !== registerForm.password) {
-          callback('两次输入的密码不一致');
+          callback(new Error('两次输入的密码不一致'))
         } else {
-          callback();
+          callback()
         }
       },
+      trigger: 'blur',
     },
   ],
   name: [
-    { required: true, message: '请输入姓名' },
-    { minLength: 2, message: '姓名至少2个字符' },
+    { required: true, message: '请输入姓名', trigger: 'blur' },
+    { min: 2, message: '姓名至少2个字符', trigger: 'blur' },
   ],
   age: [
-    { required: true, message: '请输入年龄' },
-    { type: 'number', min: 1, max: 120, message: '年龄必须在1-120之间' },
+    { required: true, message: '请输入年龄', trigger: 'blur' },
+    { type: 'number', min: 1, max: 120, message: '年龄必须在1-120之间', trigger: 'blur' },
   ],
   gender: [
-    { required: true, message: '请选择性别' },
+    { required: true, message: '请选择性别', trigger: 'change' },
   ],
   role: [
-    { required: true, message: '请选择角色' },
+    { required: true, message: '请选择角色', trigger: 'change' },
   ],
-};
+  group: [
+    { required: true, message: '请选择组织', trigger: 'change' },
+  ],
+  authPassword: [
+    { validator: validateAuthPassword, trigger: 'blur' },
+  ],
+})
 
-const formRef = ref();
-const loading = ref(false);
+const formRef = ref<FormInstance>()
+const loading = ref(false)
+
+// 处理角色变化
+const handleRoleChange = (value: string) => {
+  // 当角色改变时，清空授权密码
+  registerForm.authPassword = ''
+
+  // 重新验证授权密码字段
+  if (formRef.value) {
+    formRef.value.clearValidate('authPassword')
+  }
+}
+
+// 获取角色列表
+const fetchRoles = async () => {
+  rolesLoading.value = true
+  try {
+    const response = await getRoleList()
+    roles.value = response.roles
+  } catch (error) {
+    console.error('获取角色列表失败:', error)
+    ElMessage.error('获取角色列表失败')
+  } finally {
+    rolesLoading.value = false
+  }
+}
+
+// 获取组织列表
+const fetchGroups = async () => {
+  groupsLoading.value = true
+  try {
+    const response = await getGroupList()
+    groups.value = response.groups
+  } catch (error) {
+    console.error('获取组织列表失败:', error)
+    ElMessage.error('获取组织列表失败')
+  } finally {
+    groupsLoading.value = false
+  }
+}
 
 // 注册处理
-const handleRegister = async ({ errors }: { errors: any }) => {
-  if (errors) return;
+const handleRegister = async () => {
+  if (!formRef.value) return
 
-  loading.value = true;
+  await formRef.value.validate((valid: boolean) => {
+    if (!valid) return
+
+    submitRegister()
+  })
+}
+
+const submitRegister = async () => {
+  loading.value = true
   try {
     const registerData: RegisterRequest = {
       username: registerForm.username,
@@ -181,25 +334,32 @@ const handleRegister = async ({ errors }: { errors: any }) => {
       age: registerForm.age!,
       gender: registerForm.gender,
       role: registerForm.role,
-    };
+      group: registerForm.group,
+    }
 
-    await register(registerData);
-    Message.success('注册成功，请登录');
+    await register(registerData)
+    ElMessage.success('注册成功，请登录')
 
     // 跳转到登录页面
-    router.push('/login');
+    router.push('/login')
   } catch (error: any) {
-    console.error('Register error:', error);
-    Message.error(error.response?.data?.error || '注册失败');
+    console.error('Register error:', error)
+    ElMessage.error(error.response?.data?.message || error.message || '注册失败')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 // 跳转到登录页面
 const goToLogin = () => {
-  router.push('/login');
-};
+  router.push('/login')
+}
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchRoles()
+  fetchGroups()
+})
 </script>
 
 <style scoped lang="less">
@@ -244,24 +404,55 @@ const goToLogin = () => {
   margin-top: 20px;
   text-align: center;
 
-  .arco-divider {
+  .el-divider {
     margin: 16px 0;
     font-size: 12px;
     color: #bdc3c7;
   }
 }
 
-:deep(.arco-form-item-label) {
+.role-description {
+  font-size: 12px;
+  color: #86909c;
+  margin-left: 8px;
+}
+
+.group-user-count {
+  font-size: 12px;
+  color: #86909c;
+  margin-left: 8px;
+}
+
+.empty-result {
+  padding: 20px;
+  text-align: center;
+}
+
+.auth-password-tip {
+  margin-top: 4px;
+
+  .el-text {
+    font-size: 12px;
+    color: #909399;
+  }
+}
+
+:deep(.el-form-item__label) {
   font-weight: 500;
   color: #2c3e50;
 }
 
-:deep(.arco-input-wrapper),
-:deep(.arco-select-view-single) {
+:deep(.el-input__wrapper) {
   border-radius: 8px;
 }
 
-:deep(.arco-btn-primary) {
+:deep(.el-select) {
+  .el-input__wrapper {
+    border-radius: 8px;
+  }
+}
+
+:deep(.el-button--primary) {
   border-radius: 8px;
   height: 44px;
   font-size: 16px;
@@ -271,6 +462,22 @@ const goToLogin = () => {
 
   &:hover {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+  }
+}
+
+:deep(.el-select-dropdown__item) {
+  padding: 8px 12px;
+
+  &:hover {
+    background-color: #f2f3f5;
+  }
+}
+
+:deep(.el-button--text) {
+  color: #6c5ce7;
+
+  &:hover {
+    color: #a29bfe;
   }
 }
 </style>
