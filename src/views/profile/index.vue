@@ -137,16 +137,23 @@ import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { User, Edit } from '@element-plus/icons-vue';
 import { useUserStore } from '@/store/modules/user';
+import { getGeneralRoleFromToken } from '@/utils/auth';
 
 // 使用 store
 const userStore = useUserStore();
 const loading = ref(false);
-const avatarUrl = ref('/images/default-avatar.svg');
 const loginMetaRaw = localStorage.getItem('loginMeta');
 const loginMeta = loginMetaRaw ? JSON.parse(loginMetaRaw) : null;
 // console.log("loginMeta: ",loginMeta)
 
 // 方法
+// 用户头像 - 可以根据实际字段调整
+const avatarUrl = computed(() => {
+  const roleCode = getGeneralRoleFromToken(); // 从 token 中获取角色
+  console.log("roleCode: ",roleCode)
+  return `/images/default-avatar-${roleCode}.svg` || '';
+});
+
 const fetchUserProfile = async () => {
   loading.value = true;
   try {

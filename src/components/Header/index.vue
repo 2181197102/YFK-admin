@@ -74,6 +74,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useAppStore, useUserStore } from '@/store';
 import { Sunny, Moon, User, ArrowDown, SwitchButton } from '@element-plus/icons-vue';
+import {getUsernameFromToken, getGeneralRoleFromToken} from '@/utils/auth';
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -93,44 +94,15 @@ const isDark = useDark({
 
 const toggleTheme = useToggle(isDark);
 
-// 用户信息相关
-const userInfo = computed(() => {
-  // 优先从store获取，如果没有则从localStorage获取
-  if (userStore.loginMeta) {
-    return userStore.loginMeta;
-  }
-
-  const cached = localStorage.getItem('userInfo');
-  if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch (error) {
-      console.error('解析用户信息失败:', error);
-      return null;
-    }
-  }
-  return null;
-});
 
 // 用户头像 - 可以根据实际字段调整
 const userAvatar = computed(() => {
-  return userInfo.value?.avatar || '/images/default-avatar.svg';
+  const roleCode = getGeneralRoleFromToken(); // 从 token 中获取角色
+  console.log("roleCode: ",roleCode)
+  return `/images/default-avatar-${roleCode}.svg` || '';
 });
 
 // 用户名称 - 可以根据实际字段调整
-function getUsernameFromToken(): string {
-  const token = localStorage.getItem('access_token');
-  if (!token) return '用户';
-
-  try {
-    const payload = token.split('.')[1]; // 获取中间段
-    const decoded = JSON.parse(atob(payload));
-    return decoded.username || '用户';
-  } catch (e) {
-    return '用户';
-  }
-}
-
 const userName = computed(() => {
   return getUsernameFromToken();
 });
