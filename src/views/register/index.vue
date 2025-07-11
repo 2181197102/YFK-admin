@@ -6,20 +6,16 @@
         <p>创建您的账号</p>
       </div>
 
+      <!-- 移除 @submit.prevent，避免表单自动提交导致的重复触发 -->
       <el-form
           ref="formRef"
           :model="registerForm"
           :rules="rules"
           label-position="top"
           size="large"
-          @submit.prevent="handleRegister"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input
-              v-model="registerForm.username"
-              placeholder="请输入用户名"
-              clearable
-          />
+          <el-input v-model="registerForm.username" placeholder="请输入用户名" clearable />
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
@@ -43,11 +39,7 @@
         </el-form-item>
 
         <el-form-item label="姓名" prop="name">
-          <el-input
-              v-model="registerForm.name"
-              placeholder="请输入真实姓名"
-              clearable
-          />
+          <el-input v-model="registerForm.name" placeholder="请输入真实姓名" clearable />
         </el-form-item>
 
         <el-row :gutter="16">
@@ -99,11 +91,7 @@
         </el-form-item>
 
         <!-- 授权密码字段，只有非患者角色才显示 -->
-        <el-form-item
-            v-if="showAuthPassword"
-            label="授权密码"
-            prop="authPassword"
-        >
+        <el-form-item v-if="showAuthPassword" label="授权密码" prop="authPassword">
           <el-input
               v-model="registerForm.authPassword"
               type="password"
@@ -112,9 +100,7 @@
               clearable
           />
           <div class="auth-password-tip">
-            <el-text size="small" type="info">
-              * 选择非患者角色需要输入授权密码
-            </el-text>
+            <el-text size="small" type="info">* 选择非患者角色需要输入授权密码</el-text>
           </div>
         </el-form-item>
 
@@ -158,9 +144,7 @@
 
       <div class="register-footer">
         <el-divider>或</el-divider>
-        <el-button type="text" @click="goToLogin">
-          已有账号？立即登录
-        </el-button>
+        <el-button type="text" @click="goToLogin">已有账号？立即登录</el-button>
       </div>
     </div>
   </div>
@@ -170,15 +154,13 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { register, getRoleList, getGroupList } from '@/api/auth/auth'
+import { debounce } from 'lodash-es'
+import { register, getRoleList, getGroupList, verifyAuthPassword } from '@/api/auth/auth'
 import type { RegisterRequest, Role, Group } from '@/api/auth/types'
 
 const router = useRouter()
 
-// 从环境变量中获取授权密码
-const AUTH_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD
-
-// 表单数据
+/* ------------------------- 表单数据 ------------------------- */
 const registerForm = reactive({
   username: '',
   password: '',
@@ -188,45 +170,35 @@ const registerForm = reactive({
   gender: '',
   role: '',
   group: '',
-  authPassword: '', // 新增授权密码字段
+  authPassword: '',
 })
 
-// 角色和组织数据
+/* ------------------------- 列表数据 ------------------------- */
 const roles = ref<Role[]>([])
 const groups = ref<Group[]>([])
 const rolesLoading = ref(false)
 const groupsLoading = ref(false)
 
-// 计算属性：过滤掉管理员角色
-const filteredRoles = computed(() => {
-  return roles.value.filter(role =>
-      role.role_name !== '管理员' &&
-      role.role_code !== 'admin' &&
-      role.role_code !== 'ADMIN'
-  )
-})
+/* ------------------------- 计算属性 ------------------------- */
+const filteredRoles = computed(() =>
+    roles.value.filter(
+        role =>
+            role.role_name !== '管理员' &&
+            role.role_code.toLowerCase() !== 'admin'
+    )
+)
 
-// 计算属性：判断是否显示授权密码字段
-const showAuthPassword = computed(() => {
-  return registerForm.role && registerForm.role !== '患者'
-})
+const showAuthPassword = computed(() => registerForm.role && registerForm.role !== '患者')
 
-// 自定义验证器：授权密码验证
+/* ------------------------- 表单规则 ------------------------- */
 const validateAuthPassword = (rule: any, value: string, callback: Function) => {
-  if (showAuthPassword.value) {
-    if (!value) {
-      callback(new Error('请输入授权密码'))
-    } else if (value !== AUTH_PASSWORD) {
-      callback(new Error('授权密码错误'))
-    } else {
-      callback()
-    }
+  if (showAuthPassword.value && !value) {
+    callback(new Error('请输入授权密码'))
   } else {
     callback()
   }
 }
 
-// 表单验证规则
 const rules = reactive<FormRules>({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -255,79 +227,85 @@ const rules = reactive<FormRules>({
   ],
   age: [
     { required: true, message: '请输入年龄', trigger: 'blur' },
-    { type: 'number', min: 1, max: 120, message: '年龄必须在1-120之间', trigger: 'blur' },
+    { type: 'number', min: 1, max: 120, message: '年龄必须在1‑120之间', trigger: 'blur' },
   ],
-  gender: [
-    { required: true, message: '请选择性别', trigger: 'change' },
-  ],
-  role: [
-    { required: true, message: '请选择角色', trigger: 'change' },
-  ],
-  group: [
-    { required: true, message: '请选择组织', trigger: 'change' },
-  ],
-  authPassword: [
-    { validator: validateAuthPassword, trigger: 'blur' },
-  ],
+  gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
+  group: [{ required: true, message: '请选择组织', trigger: 'change' }],
+  authPassword: [{ validator: validateAuthPassword, trigger: 'blur' }],
 })
 
+/* ------------------------- refs ------------------------- */
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
-// 处理角色变化
-const handleRoleChange = (value: string) => {
-  // 当角色改变时，清空授权密码
+/* ------------------------- 事件 ------------------------- */
+const handleRoleChange = () => {
   registerForm.authPassword = ''
-
-  // 重新验证授权密码字段
-  if (formRef.value) {
-    formRef.value.clearValidate('authPassword')
-  }
+  formRef.value?.clearValidate('authPassword')
 }
 
-// 获取角色列表
+/* ------------------------- API 调用 ------------------------- */
 const fetchRoles = async () => {
   rolesLoading.value = true
   try {
-    const response = await getRoleList()
-    roles.value = response.roles
+    const { roles: roleList } = await getRoleList()
+    roles.value = roleList
   } catch (error) {
-    console.error('获取角色列表失败:', error)
     ElMessage.error('获取角色列表失败')
   } finally {
     rolesLoading.value = false
   }
 }
 
-// 获取组织列表
 const fetchGroups = async () => {
   groupsLoading.value = true
   try {
-    const response = await getGroupList()
-    groups.value = response.groups
+    const { groups: groupList } = await getGroupList()
+    groups.value = groupList
   } catch (error) {
-    console.error('获取组织列表失败:', error)
     ElMessage.error('获取组织列表失败')
   } finally {
     groupsLoading.value = false
   }
 }
 
-// 注册处理
-const handleRegister = async () => {
-  if (!formRef.value) return
-
-  await formRef.value.validate((valid: boolean) => {
-    if (!valid) return
-
-    submitRegister()
-  })
+const validateAuthPasswordApi = async (password: string) => {
+  try {
+    await verifyAuthPassword(password)
+    return true
+  } catch {
+    return false
+  }
 }
 
-const submitRegister = async () => {
+/* ------------------------- 注册处理（带防抖） ------------------------- */
+const handleRegister = debounce(async () => {
+  if (!formRef.value) return
+
   loading.value = true
+  // console.log("开始时的：",loading.value)
   try {
-    const registerData: RegisterRequest = {
+    const valid = await formRef.value.validate()
+    if (!valid) {
+      loading.value = false
+      return
+    }
+
+    if (showAuthPassword.value) {
+      const ok = await validateAuthPasswordApi(registerForm.authPassword)
+      // console.log("授权密码验证完：",loading.value)
+      if (!ok) {
+        // console.log("授权密码错误前：",loading.value)
+        // ElMessage.error('授权密码错误2222')
+        // console.log("授权密码错误后：",loading.value)
+        loading.value = false
+        // console.log("授权密码错误后，状态重置：",loading.value)
+        return
+      }
+    }
+
+    const data: RegisterRequest = {
       username: registerForm.username,
       password: registerForm.password,
       name: registerForm.name,
@@ -337,25 +315,19 @@ const submitRegister = async () => {
       group: registerForm.group,
     }
 
-    await register(registerData)
+    await register(data)
     ElMessage.success('注册成功，请登录')
-
-    // 跳转到登录页面
     router.push('/login')
   } catch (error: any) {
-    console.error('Register error:', error)
-    ElMessage.error(error.response?.data?.message || error.message || '注册失败')
+    // ElMessage.error(error.response?.data?.message || error.message || '注册失败，请完善注册信息！')
   } finally {
     loading.value = false
   }
-}
+}, 800, { leading: true, trailing: false })
 
-// 跳转到登录页面
-const goToLogin = () => {
-  router.push('/login')
-}
+/* ------------------------- 其他 ------------------------- */
+const goToLogin = () => router.push('/login')
 
-// 组件挂载时获取数据
 onMounted(() => {
   fetchRoles()
   fetchGroups()
@@ -371,7 +343,6 @@ onMounted(() => {
   background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
   padding: 20px;
 }
-
 .register-box {
   width: 100%;
   max-width: 500px;
@@ -381,77 +352,59 @@ onMounted(() => {
   padding: 40px 30px;
   backdrop-filter: blur(10px);
 }
-
 .register-header {
   text-align: center;
   margin-bottom: 30px;
-
   h1 {
     font-size: 28px;
     color: #2c3e50;
     margin-bottom: 8px;
     font-weight: 600;
   }
-
   p {
     color: #7f8c8d;
     font-size: 14px;
     margin: 0;
   }
 }
-
 .register-footer {
   margin-top: 20px;
   text-align: center;
-
   .el-divider {
     margin: 16px 0;
     font-size: 12px;
     color: #bdc3c7;
   }
 }
-
-.role-description {
-  font-size: 12px;
-  color: #86909c;
-  margin-left: 8px;
-}
-
+.role-description,
 .group-user-count {
   font-size: 12px;
   color: #86909c;
   margin-left: 8px;
 }
-
 .empty-result {
   padding: 20px;
   text-align: center;
 }
-
 .auth-password-tip {
   margin-top: 4px;
-
   .el-text {
     font-size: 12px;
     color: #909399;
   }
 }
 
+/* Element Plus 深度样式 */
 :deep(.el-form-item__label) {
   font-weight: 500;
   color: #2c3e50;
 }
-
 :deep(.el-input__wrapper) {
   border-radius: 8px;
 }
-
-:deep(.el-select) {
-  .el-input__wrapper {
-    border-radius: 8px;
-  }
+:deep(.el-select .el-input__wrapper) {
+  border-radius: 8px;
 }
-
 :deep(.el-button--primary) {
   border-radius: 8px;
   height: 44px;
@@ -459,23 +412,18 @@ onMounted(() => {
   font-weight: 500;
   background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
   border: none;
-
   &:hover {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
   }
 }
-
 :deep(.el-select-dropdown__item) {
   padding: 8px 12px;
-
   &:hover {
     background-color: #f2f3f5;
   }
 }
-
 :deep(.el-button--text) {
   color: #6c5ce7;
-
   &:hover {
     color: #a29bfe;
   }

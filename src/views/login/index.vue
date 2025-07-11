@@ -125,8 +125,8 @@ const handleLogin = async () => {
     await nextTick();
     router.push('/contain');
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.error || error?.message || '登录失败，请重试';
-    ElMessage.error(errorMessage);
+    // const errorMessage = error?.response?.data?.error || error?.message || '登录失败，请重试';
+    // ElMessage.error(errorMessage);
   } finally {
     loading.value = false;
   }

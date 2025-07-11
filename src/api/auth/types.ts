@@ -74,3 +74,14 @@ export interface GroupListResponse {
     status: string;
 }
 
+// 密码校验相关类型
+export interface VerifyAuthPasswordRequest {
+    password: string;
+}
+
+export interface VerifyAuthPasswordResponse {
+    code: number;
+    message: string;
+    result: null;
+    status: string;
+}

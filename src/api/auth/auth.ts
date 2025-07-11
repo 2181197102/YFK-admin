@@ -1,6 +1,6 @@
 // src/api/auth/auth.ts
 import { get, post } from '@/utils/http/axios';
-import type { LoginResponse, RegisterRequest, UserProfile, ChangePasswordRequest, RoleListResponse, GroupListResponse } from './types';
+import type { LoginResponse, RegisterRequest, UserProfile, ChangePasswordRequest, RoleListResponse, GroupListResponse , VerifyAuthPasswordResponse , VerifyAuthPasswordRequest} from './types';
 
 // 登录
 export const login = (username: string, password: string): Promise<LoginResponse> => {
@@ -74,5 +74,19 @@ export const getGroupList = (params?: { page?: number; per_page?: number; search
     return get({
         url: '/user_management/groups',
         params,
+    });
+};
+
+
+/**
+ * 校验授权密码
+ * @param password 授权密码
+ * @returns Promise<VerifyAuthPasswordResponse>
+ */
+export const verifyAuthPassword = (password: string): Promise<VerifyAuthPasswordResponse> => {
+    const data: VerifyAuthPasswordRequest = { password };
+    return post({
+        url: '/system_config/verify-auth-password',
+        data
     });
 };

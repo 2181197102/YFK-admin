@@ -1,8 +1,8 @@
 // src/store/modules/user/index.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { login as loginAPI, logout as logoutAPI, getUserProfile, getRoleList, getGroupList } from '@/api/auth/auth';
-import type { LoginResponse, UserProfile, Role, Group, RoleListResponse, GroupListResponse } from '@/api/auth/types';
+import { login as loginAPI, logout as logoutAPI, getUserProfile } from '@/api/auth/auth';
+import type { LoginResponse, UserProfile, Role, Group } from '@/api/auth/types';
 import type { LoginMeta } from './types';
 
 export const useUserStore = defineStore('user', () => {
