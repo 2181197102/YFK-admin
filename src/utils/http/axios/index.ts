@@ -37,9 +37,14 @@ service.interceptors.response.use(
     (error: AxiosError) => {
         const { response } = error;
         if (response) {
-            const status = response.status;
+            const { status,  data } = response as AxiosResponse<IResponse>;
 
-            showMessage(status);
+            /** 🔹先看后端有没有 message，有就直接弹 */
+            if (data?.message) {
+                ElMessage.error(data.message);
+            } else {
+                showMessage(status);      // 没 message 再走兜底文案
+            }
 
             // 处理 401 未授权（token 过期或无效）
             if (status === 401) {
@@ -63,16 +68,21 @@ service.interceptors.response.use(
 );
 
 
-const request = <T = any>(config: AxiosRequestConfig): Promise<T> => {
-  const conf = config;
-  return new Promise((resolve) => {
-    service.request<any, AxiosResponse<IResponse>>(conf).then((res: AxiosResponse<IResponse>) => {
-      const {
-        data: { result },
-      } = res;
-      resolve(result as T);
-    });
-  });
+// const request = <T = any>(config: AxiosRequestConfig): Promise<T> => {
+//   const conf = config;
+//   return new Promise((resolve) => {
+//     service.request<any, AxiosResponse<IResponse>>(conf).then((res: AxiosResponse<IResponse>) => {
+//       const {
+//         data: { result },
+//       } = res;
+//       resolve(result as T);
+//     });
+//   });
+// };
+
+const request = async <T = any>(config: AxiosRequestConfig): Promise<T> => {
+    const res = await service.request<any, AxiosResponse<IResponse>>(config);
+    return res.data.result as T;
 };
 
 export function get<T = any>(config: AxiosRequestConfig): Promise<T> {
