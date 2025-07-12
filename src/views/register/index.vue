@@ -69,10 +69,10 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="角色" prop="role">
+        <el-form-item label="用户类型" prop="role">
           <el-select
               v-model="registerForm.role"
-              placeholder="请选择角色"
+              placeholder="请选择用户类型"
               :loading="rolesLoading"
               clearable
               style="width: 100%"
@@ -104,10 +104,10 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="所属组织" prop="group">
+        <el-form-item label="所属机构" prop="group">
           <el-select
               v-model="registerForm.group"
-              placeholder="请选择组织"
+              placeholder="请选择机构"
               :loading="groupsLoading"
               clearable
               style="width: 100%"
