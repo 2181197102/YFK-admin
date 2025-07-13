@@ -240,25 +240,25 @@ function hasPermission(route: any, userRole: string): boolean {
   return route.meta.roles.includes(userRole);
 }
 
-/**
- * 根据用户角色获取默认跳转路径
- * @param userRole 用户角色
- * @returns 默认路径
- */
-function getDefaultPathByRole(userRole: string): string {
-  switch (userRole) {
-    case 'ADMIN':
-      return '/admin/users';
-    case 'RESEARCHER':
-      return '/research/projects';
-    case 'DOCTOR':
-      return '/doctor/dashboard';
-    case 'PATIENT':
-      return '/patient/dashboard';
-    default:
-      return '/contain';
-  }
-}
+// /**
+//  * 根据用户角色获取默认跳转路径
+//  * @param userRole 用户角色
+//  * @returns 默认路径
+//  */
+// function getDefaultPathByRole(userRole: string): string {
+//   switch (userRole) {
+//     case 'ADMIN':
+//       return '/admin/users';
+//     case 'RESEARCHER':
+//       return '/research/projects';
+//     case 'DOCTOR':
+//       return '/doctor/dashboard';
+//     case 'PATIENT':
+//       return '/patient/dashboard';
+//     default:
+//       return '/contain';
+//   }
+// }
 
 // 路由守卫
 router.beforeEach(async (to, _from, next) => {
@@ -306,6 +306,16 @@ router.beforeEach(async (to, _from, next) => {
 
   } else {
     // 如果用户已登录，访问登录或注册页面，重定向到首页
+    // if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
+    //   const userRole = getGeneralRoleFromToken();
+    //   if (userRole) {
+    //     const defaultPath = getDefaultPathByRole(userRole);
+    //     next(defaultPath);
+    //     return;
+    //   }
+    //   next('/contain');
+    //   return;
+    // }
     if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
       next('/contain');
       return;

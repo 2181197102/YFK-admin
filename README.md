@@ -39,7 +39,6 @@
 
 一个开箱即用，快速搭建大型应用的 Vue3 + Vite4.0 + TypeScript+...模板框架。集成了各类插件，并进行了模块化和按需加载的优化，可以放心使用。 [文档](https://tobe-fe-dalao.github.io/fast-vue3-site/)
 
-
 # 快速开始
 
 推荐使用 yarn（首选） 或 pnpm 不推荐使用npm
@@ -55,3 +54,84 @@ pnpm install
 yarn dev
 pnpm dev
 ```
+
+
+
+# 基于角色的Layout组件
+
+```
+// 使用示例和说明
+
+使用说明：
+
+1. 路由配置：
+- 在文件 src/router/index.ts 中增加相应的路由
+- 在每个路由的 meta 中添加 roles 数组，定义哪些角色可以访问该路由
+- 如果不定义 roles，则默认所有角色都可以访问
+
+2. 角色权限：
+- ADMIN: 管理员，可以访问所有功能
+- RESEARCHER: 研究员，可以访问研究相关功能
+- DOCTOR: 医生，可以访问医生工作台相关功能
+- PATIENT: 患者，可以访问患者中心相关功能
+
+3. 菜单过滤：
+- getUserMenus() 函数会根据当前用户的角色自动过滤菜单
+- 只有用户有权限的菜单项才会显示
+
+4. 动态刷新：
+- 如果用户角色发生变化，可以调用 refreshMenus() 方法重新加载菜单
+
+5. 扩展性：
+- 可以轻松添加新的角色和菜单项
+- 支持多角色访问同一菜单项
+- 支持嵌套菜单的权限控制
+
+
+示例模板：
+只有一个节点：
+  {
+    path: '/demo1',
+    name: 'Demo1',
+    meta: {
+      title: '示例1',
+      requiresAuth: true,
+    },
+    component: () => import('@/views/demo1/index.vue'),
+  },
+
+有2个即以上子节点：
+{
+    path: '/demo2',
+    name: 'Demo2',
+    meta: {
+      title: '示例2',
+      requiresAuth: true,
+      roles: ['ADMIN',...],
+    },
+    children: [
+      {
+        path: '/demo2/children1',
+        name: 'children1',
+        meta: {
+          title: '子节点1',
+          requiresAuth: true,
+          roles: ['ADMIN',...],
+        },
+        component: () => import('@/views/demo2/children1/index.vue'),
+      },
+      {
+        path: '/demo2/children2',
+        name: 'children1',
+        meta: {
+          title: '子节点2',
+          requiresAuth: true,
+          roles: ['ADMIN'，...],
+        },
+        component: () => import('@/views/demo2/children1/index.vue'),
+      },
+    ],
+  },
+
+```
+
