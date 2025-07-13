@@ -98,7 +98,7 @@ const toggleTheme = useToggle(isDark);
 // 用户头像 - 可以根据实际字段调整
 const userAvatar = computed(() => {
   const roleCode = getGeneralRoleFromToken(); // 从 token 中获取角色
-  console.log("roleCode: ",roleCode)
+  // console.log("roleCode: ",roleCode)
   return `/images/default-avatar-${roleCode}.svg` || '';
 });
 
