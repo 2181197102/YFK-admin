@@ -1,16 +1,16 @@
-<!-- 1. 创建统一的布局组件 src/layout/index.vue -->
+<!-- src/layout/index.vue -->
 <template>
   <div class="app-layout">
     <el-container>
-      <!-- 侧边栏 - 只会初始化一次 -->
-      <el-aside width="180px">
-        <Layout />
+      <!-- 侧边栏 - 支持折叠 -->
+      <el-aside :width="isLayoutCollapsed ? '64px' : '180px'" class="sidebar-container">
+        <Layout :collapsed="isLayoutCollapsed" />
       </el-aside>
 
       <!-- 右侧：头部 + 主体内容 -->
       <el-container>
         <el-header>
-          <Header />
+          <Header @toggle-layout="handleToggleLayout" />
         </el-header>
 
         <el-main>
@@ -23,8 +23,17 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import Header from '@/components/Header/index.vue';
 import Layout from '@/components/Layout/index.vue';
+
+// 布局折叠状态，默认展开
+const isLayoutCollapsed = ref(false);
+
+// 处理Header发出的切换事件
+const handleToggleLayout = (collapsed: boolean) => {
+  isLayoutCollapsed.value = collapsed;
+};
 </script>
 
 <style lang="less" scoped>
@@ -41,6 +50,11 @@ import Layout from '@/components/Layout/index.vue';
 
   .el-main {
     padding: 20px;
+  }
+
+  .sidebar-container {
+    transition: width 0.3s ease;
+    overflow: hidden;
   }
 }
 </style>
