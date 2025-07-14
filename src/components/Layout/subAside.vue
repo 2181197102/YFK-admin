@@ -1,12 +1,18 @@
-// src/views/contain/components/subAside.vue
 <template>
-  <!-- 有子节点渲染这个 -->
-  <el-sub-menu :index="menu.path" v-if="menu?.children && menu.children.length > 0">
+  <!-- 有子菜单 -->
+  <el-sub-menu :index="menu.path" v-if="hasChildren">
     <template #title>
-      <!-- <el-icon v-html="menu?.meta.icon"></el-icon> -->
-      <span>{{ menu?.meta.title }}</span>
+      <!-- 显示路由 meta.icon -->
+      <SvgIcon
+          v-if="menu.meta?.icon"
+          :name="menu.meta.icon"
+          size="small"
+          class="menu-icon"
+      />
+      <span>{{ menu.meta.title }}</span>
     </template>
-    <!-- 递归调用本身，该组件在index.ts中全局注册了 -->
+
+    <!-- 递归渲染子节点 -->
     <SubAside
         v-for="item in menu.children"
         :key="item.path"
@@ -14,20 +20,47 @@
         :isCollapse="isCollapse"
     />
   </el-sub-menu>
-  <!-- 没有子节点渲染这个 -->
-  <el-menu-item v-else :index="menu?.path">
-    <!-- <el-icon v-html="menu?.meta.icon"></el-icon> -->
-    <span>{{ menu?.meta.title }}</span>
+
+  <!-- 无子菜单 -->
+  <el-menu-item v-else :index="menu.path">
+    <SvgIcon
+        v-if="menu.meta?.icon"
+        :name="menu.meta.icon"
+        size="small"
+        class="menu-icon"
+    />
+    <span>{{ menu.meta.title }}</span>
   </el-menu-item>
 </template>
 
-<script lang="ts" setup>
-import SubAside from './subAside.vue';
+<script setup lang="ts">
+import { computed } from 'vue'
+import SvgIcon from '@/components/SvgIcon/index.vue'
+import SubAside from './subAside.vue'
 
-defineProps({
-  isCollapse: Boolean,
-  menu: Object,
-});
+interface MenuItem {
+  path: string
+  meta?: {
+    title?: string
+    icon?: string
+  }
+  children?: MenuItem[]
+}
+
+const props = defineProps<{
+  isCollapse: boolean
+  menu: MenuItem
+}>()
+
+/* 是否存在子菜单 */
+const hasChildren = computed(
+    () => Array.isArray(props.menu.children) && props.menu.children.length > 0
+)
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped lang="scss">
+.menu-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+</style>

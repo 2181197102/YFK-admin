@@ -57,6 +57,7 @@ const routes = [
           title: '主页',
           requiresAuth: true,
           roles: ['ADMIN', 'RESEARCHER', 'DOCTOR', 'PATIENT'],
+          icon: 'dashboard',
         },
         component: () => import('@/views/dashboard/index.vue'),
       },
@@ -69,6 +70,7 @@ const routes = [
           title: '系统管理',
           requiresAuth: true,
           roles: ['ADMIN'],
+          icon: 'component',
         },
         children: [
           {
@@ -112,6 +114,7 @@ const routes = [
           title: '研究中心',
           requiresAuth: true,
           roles: ['RESEARCHER', 'ADMIN'],
+          icon: 'search',
         },
         children: [
           {
@@ -135,6 +138,7 @@ const routes = [
           title: '医生工作台',
           requiresAuth: true,
           roles: ['DOCTOR', 'ADMIN'],
+          icon: 'doctor1',
         },
         children: [
           {
@@ -168,6 +172,7 @@ const routes = [
           title: '患者中心',
           requiresAuth: true,
           roles: ['PATIENT', 'ADMIN'],
+          icon: 'user',
         },
         children: [
           {
@@ -191,6 +196,7 @@ const routes = [
           title: '通用功能',
           requiresAuth: true,
           roles: ['ADMIN', 'RESEARCHER', 'PATIENT', 'DOCTOR'],
+          icon: 'example',
         },
         children: [
           {

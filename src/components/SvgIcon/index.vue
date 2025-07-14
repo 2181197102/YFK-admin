@@ -1,6 +1,6 @@
 <template>
-  <svg aria-hidden="true" class="svg-icon-spin" :class="calsses">
-    <use :xlink:href="symbolId" :fill="color" />
+  <svg aria-hidden="true" class="svg-icon-spin" :class="classes">
+    + <use :xlink:href="symbolId" fill="currentColor" />
   </svg>
 </template>
 
@@ -16,7 +16,7 @@
     },
     color: {
       type: String,
-      default: '#333',
+      default: ''  // 不再默认固定颜色
     },
     size: {
       type: String,
@@ -24,7 +24,7 @@
     },
   });
   const symbolId = computed(() => `#${props.prefix}-${props.name}`);
-  const calsses = computed(() => {
+  const classes = computed(() => {
     return {
       [`sdms-size-${props.size}`]: props.size,
     };
@@ -35,7 +35,7 @@
   .svg-icon-spin {
     width: v-bind('fontSize.default');
     height: v-bind('fontSize.default');
-    fill: v-bind(color);
+    fill: currentColor;       /* 关键：继承父元素文字色 */
     vertical-align: middle;
     color: v-bind(color);
 

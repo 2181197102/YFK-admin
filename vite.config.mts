@@ -1,3 +1,4 @@
+// vite.config.mts
 import { UserConfig, ConfigEnv, loadEnv } from 'vite';
 import { createVitePlugins } from './build/vite/plugins';
 import { fileURLToPath, URL } from 'node:url';
