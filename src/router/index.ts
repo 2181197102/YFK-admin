@@ -30,15 +30,6 @@ const routes = [
     },
     component: () => import('@/views/register/index.vue'),
   },
-  {
-    path: '/profile',
-    name: 'Profile',
-    meta: {
-      title: '个人信息',
-      requiresAuth: true,
-    },
-    component: () => import('@/views/profile/index.vue'),
-  },
 
   // ============= 主要布局路由 =============
   {
@@ -60,6 +51,16 @@ const routes = [
           icon: 'dashboard',
         },
         component: () => import('@/views/dashboard/index.vue'),
+      },
+      // 个人信息页面
+      {
+        path: '/profile',
+        name: 'Profile',
+        meta: {
+          title: '个人信息',
+          requiresAuth: true,
+        },
+        component: () => import('@/views/profile/index.vue'),
       },
 
       // ============= 管理员路由 =============

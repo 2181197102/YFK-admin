@@ -1,140 +1,132 @@
+<!-- src/views/profile/index.vue -->
 <template>
   <div class="common-layout">
-    <el-container>
-      <!-- 头部区域，只保留 Header，不包含侧边栏 -->
-      <el-header>
-        <Header />
-      </el-header>
+    <div class="user-profile-container">
+      <!-- 头像与基础信息 -->
+      <div class="profile-header">
+        <el-card class="header-card gradient-bg" shadow="hover">
+          <div class="header-content">
+            <!-- 头像 -->
+            <div class="avatar-section">
+              <el-avatar :size="80" :src="avatarUrl" class="user-avatar">
+                <el-icon><User /></el-icon>
+              </el-avatar>
+            </div>
 
-      <!-- 主体区域：个人信息卡片 -->
-      <el-main>
-        <div class="user-profile-container">
-          <!-- 上半部分：头像和基本信息 -->
-          <div class="profile-header">
-            <el-card class="header-card gradient-bg">
-              <div class="header-content">
-                <!-- 头像 -->
-                <div class="avatar-section">
-                  <el-avatar :size="80" :src="avatarUrl" class="user-avatar">
-                    <el-icon><User /></el-icon>
-                  </el-avatar>
-                </div>
-
-                <!-- 用户基本信息 -->
-                <div class="user-info">
-                  <div class="username">{{ userStore.userProfile?.username || '加载中...' }}</div>
-                  <div class="role-name">{{ userStore.userProfile?.role_name || '角色加载中...' }}</div>
-                </div>
-              </div>
-            </el-card>
+            <!-- 基本信息 -->
+            <div class="user-info">
+              <div class="username">{{ userStore.userProfile?.username || '加载中...' }}</div>
+              <div class="role-name">{{ userStore.userProfile?.role_name || '角色加载中...' }}</div>
+            </div>
           </div>
+        </el-card>
+      </div>
 
-          <!-- 下半部分：详细信息 -->
-          <div class="profile-details">
-            <el-card class="details-card">
-              <template #header>
-                <div class="card-header">
-                  <span>个人详细信息</span>
-                  <el-button type="primary" size="small" disabled>
-                    <el-icon><Edit /></el-icon>
-                    编辑
-                  </el-button>
+      <!-- 详细信息 -->
+      <div class="profile-details">
+        <el-card class="details-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>个人详细信息</span>
+              <el-button type="primary" size="small" disabled>
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+            </div>
+          </template>
+
+          <div class="details-content">
+            <!-- 下面所有 el-row / el-col 与原代码一致，可按需增删字段 -->
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">用户ID：</label>
+                  <span class="info-value">{{ userStore.userProfile?.id || '-' }}</span>
                 </div>
-              </template>
+              </el-col>
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">姓名：</label>
+                  <span class="info-value">{{ userStore.userProfile?.name || '-' }}</span>
+                </div>
+              </el-col>
+            </el-row>
 
-              <div class="details-content">
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">用户ID：</label>
-                      <span class="info-value">{{ userStore.userProfile?.id || '-' }}</span>
-                    </div>
-                  </el-col>
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">姓名：</label>
-                      <span class="info-value">{{ userStore.userProfile?.name || '-' }}</span>
-                    </div>
-                  </el-col>
-                </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">年龄：</label>
+                  <span class="info-value">
+                    {{ userStore.userProfile?.age ? userStore.userProfile.age + ' 岁' : '-' }}
+                  </span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">性别：</label>
+                  <span class="info-value">
+                    {{
+                      userStore.userProfile?.gender === 'M'
+                          ? '男'
+                          : userStore.userProfile?.gender === 'F'
+                              ? '女'
+                              : '-'
+                    }}
+                  </span>
+                </div>
+              </el-col>
+            </el-row>
 
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">年龄：</label>
-                      <span class="info-value">
-                        {{ userStore.userProfile?.age ? userStore.userProfile.age + ' 岁' : '-' }}
-                      </span>
-                    </div>
-                  </el-col>
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">性别：</label>
-                      <span class="info-value">
-                        {{
-                          userStore.userProfile?.gender === 'M'
-                              ? '男'
-                              : userStore.userProfile?.gender === 'F'
-                                  ? '女'
-                                  : '-'
-                        }}
-                      </span>
-                    </div>
-                  </el-col>
-                </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">账户状态：</label>
+                  <el-tag :type="userStore.userProfile?.enable ? 'success' : 'danger'">
+                    {{ userStore.userProfile?.enable ? '启用' : '禁用' }}
+                  </el-tag>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">角色代码：</label>
+                  <span class="info-value">{{ userStore.userProfile?.role_code || '-' }}</span>
+                </div>
+              </el-col>
+            </el-row>
 
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">账户状态：</label>
-                      <el-tag :type="userStore.userProfile?.enable ? 'success' : 'danger'">
-                        {{ userStore.userProfile?.enable ? '启用' : '禁用' }}
-                      </el-tag>
-                    </div>
-                  </el-col>
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">角色代码：</label>
-                      <span class="info-value">{{ userStore.userProfile?.role_code || '-' }}</span>
-                    </div>
-                  </el-col>
-                </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">所属组织：</label>
+                  <span class="info-value">{{ userStore.userProfile?.group_name || '暂无' }}</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">创建时间：</label>
+                  <span class="info-value">{{ formatDate(userStore.userProfile?.created_time) || '-' }}</span>
+                </div>
+              </el-col>
+            </el-row>
 
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">所属组织：</label>
-                      <span class="info-value">{{ userStore.userProfile?.group_name || '暂无' }}</span>
-                    </div>
-                  </el-col>
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">创建时间：</label>
-                      <span class="info-value">{{ formatDate(userStore.userProfile?.created_time) || '-' }}</span>
-                    </div>
-                  </el-col>
-                </el-row>
-
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">当前登录IP：</label>
-                      <el-tag type="success">{{ loginMeta?.current_login_ip || '-' }}</el-tag>
-                    </div>
-                  </el-col>
-                  <el-col :span="12">
-                    <div class="info-item">
-                      <label class="info-label">上次登录IP：</label>
-                      <el-tag>{{ loginMeta?.last_login_ip || '-' }}</el-tag>
-                    </div>
-                  </el-col>
-                </el-row>
-              </div>
-            </el-card>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">当前登录IP：</label>
+                  <el-tag type="success">{{ loginMeta?.current_login_ip || '-' }}</el-tag>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">上次登录IP：</label>
+                  <el-tag>{{ loginMeta?.last_login_ip || '-' }}</el-tag>
+                </div>
+              </el-col>
+            </el-row>
           </div>
-        </div>
-      </el-main>
-    </el-container>
+        </el-card>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -142,7 +134,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { User, Edit } from '@element-plus/icons-vue';
-import Header from '@/components/Header/index.vue';
 import { useUserStore } from '@/store/modules/user';
 import { getGeneralRoleFromToken } from '@/utils/auth';
 
@@ -151,16 +142,14 @@ const userStore = useUserStore();
 const loading = ref(false);
 const loginMetaRaw = localStorage.getItem('loginMeta');
 const loginMeta = loginMetaRaw ? JSON.parse(loginMetaRaw) : null;
-// console.log("loginMeta: ",loginMeta)
 
-// 方法
-// 用户头像 - 可以根据实际字段调整
+// 用户头像
 const avatarUrl = computed(() => {
-  const roleCode = getGeneralRoleFromToken(); // 从 token 中获取角色
-  // console.log("roleCode: ",roleCode)
+  const roleCode = getGeneralRoleFromToken();
   return `/images/default-avatar-${roleCode}.svg` || '';
 });
 
+// 获取用户信息
 const fetchUserProfile = async () => {
   loading.value = true;
   try {
@@ -187,38 +176,33 @@ const formatDate = (dateString: string | undefined): string => {
   });
 };
 
-// 生命周期
 onMounted(() => {
   fetchUserProfile();
 });
 </script>
 
 <style scoped lang="scss">
-/* —— 布局容器 —— */
+/* —— 通用布局 —— */
 .common-layout {
   height: 100%;
-
-  .el-container {
-    height: 100%;
-  }
-
-  .el-header {
-    padding: 0;
-  }
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-/* —— 页面内容样式 —— */
+/* —— 页面内容 —— */
 .user-profile-container {
-  padding: 20px;
+  width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
 }
 
 .profile-header {
-  margin-bottom: 20px;
+  margin-bottom: 20px; // 与下面个人详细信息卡片的间距
+  margin-top: -15px; // 与页面顶部(Header bar)的间距
 
   .gradient-bg {
-    background: linear-gradient(135deg, #409EFF, #ffffff);
+    background: linear-gradient(135deg, #409eff, #ffffff);
     color: white;
     border: none;
     box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
@@ -254,7 +238,7 @@ onMounted(() => {
         .role-name {
           font-size: 16px;
           color: #f5f7fa;
-          background: #409EFF;
+          background: #409eff;
           padding: 4px 12px;
           border-radius: 4px;
           display: inline-block;
@@ -315,7 +299,7 @@ onMounted(() => {
 
 /* —— 响应式 —— */
 @media (max-width: 768px) {
-  .user-profile-container {
+  .common-layout {
     padding: 10px;
   }
 

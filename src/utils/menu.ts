@@ -8,7 +8,7 @@ function extractMenusFromRoutes(routes: any[]): any[] {
         if (route.name === 'AppLayout' && route.children) {
             return route.children.filter(child => {
                 // 过滤出需要在菜单中显示的路由
-                const excludePaths = ['']; // 需要排除的菜单路径在这里添加
+                const excludePaths = ['/profile']; // 需要排除的菜单路径在这里添加
                 return !excludePaths.includes(child.path) && child.meta?.title;
             }).map(child => {
                 const menu: any = {
