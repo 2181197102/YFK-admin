@@ -123,7 +123,7 @@ const handleLogin = async () => {
     await userStore.login(username, password);
     ElMessage.success('登录成功');
     await nextTick();
-    router.push('/contain');
+    router.push('/dashboard');
   } catch (error: any) {
     // const errorMessage = error?.response?.data?.error || error?.message || '登录失败，请重试';
     // ElMessage.error(errorMessage);
