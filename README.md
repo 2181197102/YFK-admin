@@ -57,38 +57,30 @@ pnpm dev
 
 
 
-# 基于角色的Layout组件
+# 整体页面的layout布局组件
+
+包括：**基于角色的左侧Layout组件** 和  **页面上部Header组件**
 
 ```
 // 使用示例和说明
 
 使用说明：
 
-1. 路由配置：
-- 在文件 src/router/index.ts 中增加相应的路由
+1. 创建页面
+- 在src/views目录下创建相应的页面
+- 目前已经根据角色分类，创建了 admin、research、patient、doctor 组
+- 可以在相应的组中创建页面 如：若想为admin角色创建一个新的页面“demo_admin”，那么需要在 src/views/admin 文件夹下创建 demo_admin文件夹，在 demo_admin文件夹 中创建 index.vue 文件
+2. 路由配置：
+- 在文件 src/router/index.ts 中的主要布局路由（AppLayout）的子节点（children）中添加新页面的路由，即可为该页面自动使用设定好的整体布局
 - 在每个路由的 meta 中添加 roles 数组，定义哪些角色可以访问该路由
-- 如果不定义 roles，则默认所有角色都可以访问
-
-2. 角色权限：
-- ADMIN: 管理员，可以访问所有功能
-- RESEARCHER: 研究员，可以访问研究相关功能
-- DOCTOR: 医生，可以访问医生工作台相关功能
-- PATIENT: 患者，可以访问患者中心相关功能
-
-3. 菜单过滤：
-- getUserMenus() 函数会根据当前用户的角色自动过滤菜单
-- 只有用户有权限的菜单项才会显示
-
-4. 动态刷新：
-- 如果用户角色发生变化，可以调用 refreshMenus() 方法重新加载菜单
-
-5. 扩展性：
-- 可以轻松添加新的角色和菜单项
-- 支持多角色访问同一菜单项
-- 支持嵌套菜单的权限控制
+- 如需所有角色都可以访问，建议在roles数组中写为：['ADMIN', 'RESEARCHER', 'DOCTOR', 'PATIENT']
+3. 页面编辑
+- 在之前创建的相应的 index.vue 文件中编写页面的主体内容
+- 在 src/api 文件夹下，创建相关服务的接口调用逻辑，具体参考 src/api/auth 的格式和方法
+- 在 index.vue 页面中调用相关接口，对返回内容具体进行处理即可
 
 
-示例模板：
+路由示例模板：
 只有一个节点：
   {
     path: '/demo1',
@@ -96,6 +88,7 @@ pnpm dev
     meta: {
       title: '示例1',
       requiresAuth: true,
+      roles: ['ADMIN', 'RESEARCHER', 'DOCTOR', 'PATIENT'],
     },
     component: () => import('@/views/demo1/index.vue'),
   },
