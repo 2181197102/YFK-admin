@@ -2,34 +2,55 @@
 import { routes } from '@/router/index';
 import { getGeneralRoleFromToken } from '@/utils/auth';
 
-/**
- * 从路由配置中提取菜单数据
- * @param routes 路由配置
- * @returns 菜单数据
- */
 function extractMenusFromRoutes(routes: any[]): any[] {
-    return routes.filter(route => {
-        // 过滤出需要在菜单中显示的路由
-        // 排除登录、注册、错误页面等
-        const excludePaths = ['/login', '/profile', '/register', '/403', '/:pathMatch(.*)*', '/'];
-        return !excludePaths.includes(route.path) && route.meta?.title;
-    }).map(route => {
-        const menu: any = {
-            path: route.path,
-            name: route.name,
-            meta: route.meta,
-        };
+    return routes.flatMap(route => {
+        // 如果是布局路由，提取其子路由作为菜单
+        if (route.name === 'AppLayout' && route.children) {
+            return route.children.filter(child => {
+                // 过滤出需要在菜单中显示的路由
+                const excludePaths = ['']; // 需要排除的菜单路径在这里添加
+                return !excludePaths.includes(child.path) && child.meta?.title;
+            }).map(child => {
+                const menu: any = {
+                    path: child.path,
+                    name: child.name,
+                    meta: child.meta,
+                };
 
-        // 处理子路由
-        if (route.children && route.children.length > 0) {
-            menu.children = route.children.map(child => ({
-                path: child.path,
-                name: child.name,
-                meta: child.meta,
-            }));
+                // 处理子路由
+                if (child.children && child.children.length > 0) {
+                    menu.children = child.children.map(grandChild => ({
+                        path: grandChild.path,
+                        name: grandChild.name,
+                        meta: grandChild.meta,
+                    }));
+                }
+
+                return menu;
+            });
         }
 
-        return menu;
+        // 对于其他路由，保持原有逻辑
+        const excludePaths = ['/login', '/profile', '/register', '/403', '/:pathMatch(.*)*', '/', '/app'];
+        if (!excludePaths.includes(route.path) && route.meta?.title) {
+            const menu: any = {
+                path: route.path,
+                name: route.name,
+                meta: route.meta,
+            };
+
+            if (route.children && route.children.length > 0) {
+                menu.children = route.children.map(child => ({
+                    path: child.path,
+                    name: child.name,
+                    meta: child.meta,
+                }));
+            }
+
+            return [menu];
+        }
+
+        return [];
     });
 }
 

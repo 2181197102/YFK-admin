@@ -1,36 +1,15 @@
-<!-- src/views/contain/index.vue -->
+<!-- 3. 简化后的页面组件 src/views/dashboard/index.vue -->
 <template>
-  <div class="common-layout">
-    <el-container>
-      <!-- 侧边栏 -->
-      <el-aside width="180px">
-        <Layout />
-      </el-aside>
-
-      <!-- 右侧 = 头部 + 主体 -->
-      <el-container>
-        <el-header>
-          <Header />
-        </el-header>
-
-        <el-main>
-          <!-- 图表区域 -->
-          <div class="echart">
-            <div id="my-echartsbar"></div>
-            <div id="my-echartsline"></div>
-          </div>
-        </el-main>
-      </el-container>
-    </el-container>
+  <div class="dashboard-container">
+    <!-- 图表区域 -->
+    <div class="echart">
+      <div id="my-echartsbar"></div>
+      <div id="my-echartsline"></div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-/* 头部与侧边栏 */
-import Header from '@/components/Header/index.vue';
-import Layout from '@/components/Layout/index.vue';
-
-/* 图表 */
 import { onMounted } from 'vue';
 import echarts from '../../common/echarts'; // 路径比原来少一层
 
@@ -59,7 +38,6 @@ const initLine = (el: HTMLElement) => {
   window.addEventListener('resize', () => chart.resize());
 };
 
-/* 生命周期：挂载后初始化两个图表 */
 onMounted(() => {
   const bar = document.getElementById('my-echartsbar') as HTMLElement | null;
   const line = document.getElementById('my-echartsline') as HTMLElement | null;
@@ -69,19 +47,10 @@ onMounted(() => {
 </script>
 
 <style lang="less" scoped>
-.common-layout {
+.dashboard-container {
   height: 100%;
-
-  .el-container {
-    height: 100%;
-  }
-
-  .el-header {
-    padding: 0;
-  }
 }
 
-/* 图表高度 */
 .echart {
   #my-echartsbar,
   #my-echartsline {
