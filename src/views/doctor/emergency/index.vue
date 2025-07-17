@@ -1,8 +1,8 @@
-<!-- src/views/doctor/medical-records/index.vue -->
+<!-- src/views/doctor/emergency/index.vue -->
 <template>
   <div class="common-layout">
     <el-card shadow="hover" class="todo-card">
-      <p class="todo-text">这里是 /doctor/medical-records/index.vue 家庭患者管理 页面占位</p>
+      <p class="todo-text">这里是 /doctor/emergency/index.vue 急诊管理 页面占位</p>
     </el-card>
   </div>
 </template>

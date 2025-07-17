@@ -3,7 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import { useUserStore } from '@/store/modules/user';
-import { getGeneralRoleFromToken } from '@/utils/auth';
+import { getGeneralRoleFromToken, getRoleCodeFromToken } from '@/utils/auth';
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -138,7 +138,7 @@ const routes = [
         meta: {
           title: '医生工作台',
           requiresAuth: true,
-          roles: ['DOCTOR', 'ADMIN'],
+          roles: ['DOCTOR', 'ADMIN'], // 支持所有医生角色
           icon: 'doctor1',
         },
         children: [
@@ -148,7 +148,7 @@ const routes = [
             meta: {
               title: '患者列表',
               requiresAuth: true,
-              roles: ['DOCTOR', 'ADMIN'],
+              roles: ['DOCTOR', 'ADMIN'], // 支持所有医生角色
             },
             component: () => import('@/views/doctor/patients/index.vue'),
           },
@@ -158,9 +158,31 @@ const routes = [
             meta: {
               title: '病历管理',
               requiresAuth: true,
-              roles: ['DOCTOR', 'ADMIN'],
+              roles: ['DOCTOR', 'ADMIN'], // 支持所有医生角色
             },
             component: () => import('@/views/doctor/medical-records/index.vue'),
+          },
+          // 示例：只有家庭医生可以访问的路由
+          {
+            path: '/doctor/family-patients',
+            name: 'FamilyPatients',
+            meta: {
+              title: '家庭患者管理',
+              requiresAuth: true,
+              roles: ['FAMILY_DOCTOR', 'ADMIN'], // 只有家庭医生可以访问
+            },
+            component: () => import('@/views/doctor/family-patients/index.vue'),
+          },
+          // 示例：只有急诊医生可以访问的路由
+          {
+            path: '/doctor/emergency',
+            name: 'EmergencyManagement',
+            meta: {
+              title: '急诊管理',
+              requiresAuth: true,
+              roles: ['EMERGENCY_DOCTOR', 'ADMIN'], // 只有急诊医生可以访问
+            },
+            component: () => import('@/views/doctor/emergency/index.vue'),
           },
         ],
       },
@@ -243,33 +265,22 @@ const router = createRouter({
 /**
  * 检查用户是否有访问指定路由的权限
  * @param route 路由信息
- * @param userRole 用户角色
  * @returns 是否有权限
  */
-function hasPermission(route: any, userRole: string): boolean {
+function hasPermission(route: any): boolean {
   // 如果路由没有定义角色权限，则默认允许访问
   if (!route.meta?.roles) {
     return true;
   }
 
-  // 检查用户角色是否在允许的角色列表中
-  return route.meta.roles.includes(userRole);
-}
+  // 获取用户的原始角色代码和通用角色
+  const userRoleCode = getRoleCodeFromToken();
+  const userGeneralRole = getGeneralRoleFromToken();
 
-// function getDefaultPathByRole(userRole: string): string {
-//   switch (userRole) {
-//     case 'ADMIN':
-//       return '/admin/users';
-//     case 'RESEARCHER':
-//       return '/research/projects';
-//     case 'DOCTOR':
-//       return '/doctor/patients';
-//     case 'PATIENT':
-//       return '/patient/medical-history';
-//     default:
-//       return '/dashboard';
-//   }
-// }
+  // 检查用户角色是否在允许的角色列表中
+  // 支持通用角色（如 DOCTOR）和具体角色代码（如 FAMILY_DOCTOR）
+  return route.meta.roles.includes(userGeneralRole) || route.meta.roles.includes(userRoleCode);
+}
 
 // 路由守卫
 router.beforeEach(async (to, _from, next) => {
@@ -300,7 +311,7 @@ router.beforeEach(async (to, _from, next) => {
     }
 
     // 检查是否有访问权限
-    if (!hasPermission(to, userRole)) {
+    if (!hasPermission(to)) {
       console.warn(`用户角色 ${userRole} 没有访问 ${to.path} 的权限`);
       next('/403');
       return;

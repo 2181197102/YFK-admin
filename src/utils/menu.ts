@@ -1,6 +1,6 @@
 // utils/menu.ts - 修复后的菜单工具文件
 import { routes } from '@/router/index';
-import { getGeneralRoleFromToken } from '@/utils/auth';
+import { getGeneralRoleFromToken, getRoleCodeFromToken } from '@/utils/auth';
 
 function extractMenusFromRoutes(routes: any[]): any[] {
     return routes.flatMap(route => {
@@ -67,8 +67,13 @@ export const filterMenusByRole = (menus: any[], userRole: string): any[] => {
             return true;
         }
 
+        // 获取用户的原始角色代码和通用角色
+        const userRoleCode = getRoleCodeFromToken();
+        const userGeneralRole = getGeneralRoleFromToken();
+
         // 检查用户角色是否在允许的角色列表中
-        const hasPermission = menu.meta.roles.includes(userRole);
+        // 支持通用角色（如 DOCTOR）和具体角色代码（如 FAMILY_DOCTOR）
+        const hasPermission = menu.meta.roles.includes(userGeneralRole) || menu.meta.roles.includes(userRoleCode);
 
         if (hasPermission && menu.children) {
             // 如果有权限且有子菜单，递归过滤子菜单

@@ -25,6 +25,8 @@ declare module 'vue-router/auto-routes' {
     '/admin/users/': RouteRecordInfo<'/admin/users/', '/admin/users', Record<never, never>, Record<never, never>>,
     '/common/notifications/': RouteRecordInfo<'/common/notifications/', '/common/notifications', Record<never, never>, Record<never, never>>,
     '/dashboard/': RouteRecordInfo<'/dashboard/', '/dashboard', Record<never, never>, Record<never, never>>,
+    '/doctor/emergency/': RouteRecordInfo<'/doctor/emergency/', '/doctor/emergency', Record<never, never>, Record<never, never>>,
+    '/doctor/family-patients/': RouteRecordInfo<'/doctor/family-patients/', '/doctor/family-patients', Record<never, never>, Record<never, never>>,
     '/doctor/medical-records/': RouteRecordInfo<'/doctor/medical-records/', '/doctor/medical-records', Record<never, never>, Record<never, never>>,
     '/doctor/patients/': RouteRecordInfo<'/doctor/patients/', '/doctor/patients', Record<never, never>, Record<never, never>>,
     '/error/403': RouteRecordInfo<'/error/403', '/error/403', Record<never, never>, Record<never, never>>,
