@@ -34,10 +34,10 @@ import { getGeneralRoleFromToken } from '@/utils/auth';
 
 // 定义props来接收折叠状态
 const props = defineProps<{
-  collapsed?: boolean
+  collapsed?: boolean; // 允许从父组件传入初始折叠状态
 }>();
 
-const isCollapse = ref(false);
+const isCollapse = ref(props.collapsed !== undefined ? props.collapsed : false); // 根据props初始化
 const appStore = useAppStore();
 const userRole = ref('');
 const filteredNavs = ref<any[]>([]);
@@ -46,13 +46,13 @@ const filteredNavs = ref<any[]>([]);
 watch(
     () => props.collapsed,
     async (newVal) => {
-      if (newVal !== undefined) {
-        // 使用 nextTick 确保DOM更新完成
-        await nextTick();
+      // 只有当传入的 collapsed 值发生变化时才更新 isCollapse
+      if (newVal !== undefined && newVal !== isCollapse.value) {
+        await nextTick(); // 确保DOM更新完成
         isCollapse.value = newVal;
       }
     },
-    { immediate: true }
+    { immediate: true } // 立即执行一次，确保初始同步
 );
 
 const theme = computed(() => {
@@ -71,9 +71,6 @@ const initializeMenus = () => {
 
   // 直接调用 getUserMenus()，不需要传递参数
   filteredNavs.value = getUserMenus();
-
-  // console.log('用户角色:', userRole.value);
-  // console.log('过滤后的菜单:', filteredNavs.value);
 };
 
 onMounted(() => {
@@ -93,7 +90,7 @@ const refreshMenus = () => {
   initializeMenus();
 };
 
-// 暴露设置折叠状态的方法
+// 暴露设置折叠状态的方法，供外部调用以改变侧边栏折叠状态
 const setCollapse = (collapsed: boolean) => {
   isCollapse.value = collapsed;
 };
@@ -101,7 +98,7 @@ const setCollapse = (collapsed: boolean) => {
 defineExpose({
   refreshMenus,
   setCollapse,
-  isCollapse
+  isCollapse, // 暴露 isCollapse 状态，方便父组件获取当前状态
 });
 </script>
 

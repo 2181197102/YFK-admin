@@ -19,7 +19,7 @@
             <div class="flex items-center space-x-4">
               <!-- 折叠控制按钮 -->
               <el-tooltip
-                  :content="isLayoutCollapsed ? '展开侧边栏' : '折叠侧边栏'"
+                  :content="collapsedState ? '展开侧边栏' : '折叠侧边栏'"
                   placement="bottom"
                   :show-after="500"
               >
@@ -34,9 +34,8 @@
                       size="20"
                       :style="iconButtonStyle"
                       class="collapse-icon"
-                      :class="{ 'is-collapsed': isLayoutCollapsed }"
                   >
-                    <Expand v-if="isLayoutCollapsed" />
+                    <Expand v-if="collapsedState" />
                     <Fold v-else />
                   </el-icon>
                 </el-button>
@@ -78,7 +77,6 @@
                 </el-button>
               </el-tooltip>
 
-              <!-- 用户头像下拉菜单 -->
               <el-dropdown @command="handleCommand" trigger="click">
                 <div
                     class="user-dropdown-trigger"
@@ -119,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useDark, useToggle } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -142,8 +140,10 @@ const router = useRouter();
 const appStore = useAppStore();
 const userStore = useUserStore();
 
-// 左侧布局折叠状态
-const isLayoutCollapsed = ref(false);
+// 接收父组件传入的折叠状态
+const props = defineProps<{
+  collapsedState: boolean;
+}>();
 
 // 定义emit事件
 const emit = defineEmits<{
@@ -152,8 +152,8 @@ const emit = defineEmits<{
 
 // 切换布局折叠状态
 const toggleLayout = () => {
-  isLayoutCollapsed.value = !isLayoutCollapsed.value;
-  emit('toggleLayout', isLayoutCollapsed.value);
+  // 直接通过 emit 告诉父组件新的折叠状态
+  emit('toggleLayout', !props.collapsedState);
 };
 
 // 主题相关
@@ -262,25 +262,6 @@ html {
   &:active {
     transform: translateY(0);
     transition: all 0.1s cubic-bezier(0.645, 0.045, 0.355, 1);
-  }
-}
-
-/* 折叠按钮特殊动画 */
-.collapse-btn {
-  .collapse-icon {
-    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-
-    &.is-collapsed {
-      transform: rotate(180deg);
-    }
-  }
-
-  &:hover .collapse-icon {
-    transform: scale(1.1);
-
-    &.is-collapsed {
-      transform: rotate(180deg) scale(1.1);
-    }
   }
 }
 

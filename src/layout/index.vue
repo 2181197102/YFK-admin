@@ -16,7 +16,7 @@
       <!-- 右侧：头部 + 主体内容 -->
       <el-container class="main-container">
         <el-header class="header-container">
-          <Header @toggle-layout="handleToggleLayout" />
+          <Header :collapsedState="isLayoutCollapsed" @toggle-layout="handleToggleLayout" />
         </el-header>
 
         <el-main class="main-content">
@@ -55,8 +55,7 @@ const sidebarWidth = computed(() => {
 // 处理Header发出的切换事件
 const handleToggleLayout = (collapsed: boolean) => {
   isLayoutCollapsed.value = collapsed;
-
-  // 可选：同步更新Layout组件的状态
+  // 通过 ref 调用 Layout 组件的 setCollapse 方法来同步其状态
   if (layoutRef.value) {
     layoutRef.value.setCollapse(collapsed);
   }
@@ -68,6 +67,17 @@ const handleResize = () => {
   if (width < 768 && !isLayoutCollapsed.value) {
     // 移动设备自动折叠
     isLayoutCollapsed.value = true;
+    // 同时也更新 Layout 组件的状态
+    if (layoutRef.value) {
+      layoutRef.value.setCollapse(true);
+    }
+  } else if (width >= 768 && isLayoutCollapsed.value && window.localStorage.getItem('isCollapsedOnMobile') !== 'true') {
+    // 在桌面端自动展开，但如果用户在移动端手动折叠了，则不自动展开
+    // 这里可以根据实际需求调整自动展开的逻辑
+    isLayoutCollapsed.value = false;
+    if (layoutRef.value) {
+      layoutRef.value.setCollapse(false);
+    }
   }
 };
 
@@ -233,7 +243,7 @@ onUnmounted(() => {
 // 暗黑模式支持
 html.dark {
   .app-layout {
-    background: linear-gradient(135deg, #0f172a  0%, #1e1b4b  100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
 
     .main-content {
       background: #f1f5f9; // 浅灰色，接近 Tailwind 的 slate-100
