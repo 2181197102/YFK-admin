@@ -95,7 +95,7 @@ onUnmounted(() => {
 .app-layout {
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #dbeafe 100%);
 
   .layout-container {
     height: 100%;
@@ -243,7 +243,7 @@ onUnmounted(() => {
 // 暗黑模式支持
 html.dark {
   .app-layout {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #0f172a 100%);
 
     .main-content {
       background: #f1f5f9; // 浅灰色，接近 Tailwind 的 slate-100

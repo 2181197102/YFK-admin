@@ -1,4 +1,3 @@
-<!--src/components/Layout/index.vue-->
 <template>
   <div class="layout-wrapper" :class="{ 'is-collapsed': isCollapse }">
     <el-menu
@@ -13,7 +12,6 @@
         active-text-color="#fbbf24"
         :collapse-transition="true"
     >
-      <!-- 将渲染导航每一项传给子组件渲染，item代表要渲染每一项 -->
       <SubAside
           :isCollapse="isCollapse"
           v-for="item in filteredNavs"
@@ -78,11 +76,11 @@ onMounted(() => {
 });
 
 const handleOpen = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath);
+  // console.log(key, keyPath);
 };
 
 const handleClose = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath);
+  // console.log(key, keyPath);
 };
 
 // 暴露刷新菜单的方法，用于角色变更后重新加载菜单
@@ -107,6 +105,9 @@ defineExpose({
   height: 100%;
   position: relative;
   transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  // 新增样式：允许内部内容滚动
+  overflow-y: auto; // 确保在内容超出时显示垂直滚动条
+  overflow-x: hidden; // 隐藏水平滚动条
 
   &.is-collapsed {
     .el-menu-vertical-demo {
@@ -117,10 +118,30 @@ defineExpose({
       }
     }
   }
+
+  // 自定义滚动条样式
+  &::-webkit-scrollbar {
+    width: 6px; // 滚动条宽度
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9; // 滚动条轨道背景色
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1; // 滚动条滑块背景色
+    border-radius: 3px;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: #94a3b8; // 鼠标悬停时滑块背景色
+    }
+  }
 }
 
 .el-menu-vertical-demo {
-  height: 100%;
+  height: 100%; // 确保菜单占据父容器的全部高度
   border-right: none;
   transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
 
