@@ -1,7 +1,7 @@
 <!--src/components/Header/index.vue-->
 <template>
   <header
-      class="antialiased text-slate-500 dark:text-slate-400"
+      class="antialiased text-slate-500 dark:text-slate-400 header-container"
       :style="headerStyle"
   >
     <div
@@ -20,15 +20,22 @@
               <!-- 折叠控制按钮 -->
               <el-tooltip
                   :content="isLayoutCollapsed ? '展开侧边栏' : '折叠侧边栏'"
+                  placement="bottom"
+                  :show-after="500"
               >
                 <el-button
-                    class="nav-btn"
+                    class="nav-btn collapse-btn"
                     text
                     size="large"
                     @click="toggleLayout"
                     :style="iconButtonStyle"
                 >
-                  <el-icon size="20" :style="iconButtonStyle">
+                  <el-icon
+                      size="20"
+                      :style="iconButtonStyle"
+                      class="collapse-icon"
+                      :class="{ 'is-collapsed': isLayoutCollapsed }"
+                  >
                     <Expand v-if="isLayoutCollapsed" />
                     <Fold v-else />
                   </el-icon>
@@ -38,10 +45,10 @@
               <!-- Logo -->
               <router-link
                   to="/"
-                  class="flex-none w-[2.0625rem] md:w-auto leading-6 dark:text-slate-200"
+                  class="flex-none w-[2.0625rem] md:w-auto leading-6 dark:text-slate-200 logo-container"
               >
-                <img src="/images/YFK-Logo.svg" alt="Logo" class="h-6 w-auto" />
-                医防康
+                <img src="/images/YFK-Logo.svg" alt="Logo" class="logo-image" />
+                <span class="logo-text">医防康</span>
               </router-link>
             </div>
 
@@ -50,15 +57,21 @@
               <!-- 主题切换按钮 -->
               <el-tooltip
                   :content="theme === 'light' ? '设置暗黑主题' : '设置明亮主题'"
+                  placement="bottom"
+                  :show-after="500"
               >
                 <el-button
-                    class="nav-btn"
+                    class="nav-btn theme-btn"
                     text
                     size="large"
                     @click="toggleTheme()"
                     :style="iconButtonStyle"
                 >
-                  <el-icon size="20" :style="iconButtonStyle">
+                  <el-icon
+                      size="20"
+                      :style="iconButtonStyle"
+                      class="theme-icon"
+                  >
                     <Sunny v-if="theme === 'dark'" />
                     <Moon v-else />
                   </el-icon>
@@ -68,21 +81,19 @@
               <!-- 用户头像下拉菜单 -->
               <el-dropdown @command="handleCommand" trigger="click">
                 <div
-                    class="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                    class="user-dropdown-trigger"
                 >
                   <el-avatar
                       :size="32"
                       :src="userAvatar"
-                      class="border border-slate-200 dark:border-slate-700"
+                      class="user-avatar"
                   >
                     <el-icon><User /></el-icon>
                   </el-avatar>
-                  <span
-                      class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:block"
-                  >
+                  <span class="user-name">
                     {{ userName }}
                   </span>
-                  <el-icon class="ml-1 text-slate-400">
+                  <el-icon class="dropdown-arrow">
                     <ArrowDown />
                   </el-icon>
                 </div>
@@ -150,15 +161,15 @@ const theme = computed(() => appStore.theme);
 
 // Header背景色
 const headerStyle = computed(() => ({
-  backgroundColor: theme.value === 'dark' ? '#1e3a8a' : '#dbeafe',
-  transition: 'background-color 0.3s ease',
+  backgroundColor: theme.value === 'dark' ? '#0f172a' : '#dbeafe',
+  transition: 'background-color 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)',
 }));
 
 // Header容器背景色（含透明度）
 const headerContainerStyle = computed(() => ({
-  backgroundColor: theme.value === 'dark' ? '#1e3a8aE5' : '#dbeafeE5', // 加透明度 0.9
+  backgroundColor: theme.value === 'dark' ? '#18203AE5' : '#dbeafeE5',
   backdropFilter: 'blur(8px)',
-  transition: 'background-color 0.3s ease',
+  transition: 'background-color 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)',
 }));
 
 // 图标按钮颜色跟随主题
@@ -219,6 +230,11 @@ const handleCommand = async (command: string) => {
 </script>
 
 <style lang="less" scoped>
+.header-container {
+  position: relative;
+  z-index: 100;
+}
+
 html.dark {
   a {
     color: white !important;
@@ -231,29 +247,183 @@ html {
   }
 }
 
-/* 按钮通用动画 */
+/* 按钮通用动画优化 */
 .nav-btn {
-  transition: all 0.3s ease;
+  position: relative;
+  border-radius: 8px;
+  padding: 8px;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
   &:hover {
-    transform: scale(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+    transition: all 0.1s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
 }
 
-/* 头像下拉菜单样式优化 */
-:deep(.el-dropdown-menu__item) {
+/* 折叠按钮特殊动画 */
+.collapse-btn {
+  .collapse-icon {
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+    &.is-collapsed {
+      transform: rotate(180deg);
+    }
+  }
+
+  &:hover .collapse-icon {
+    transform: scale(1.1);
+
+    &.is-collapsed {
+      transform: rotate(180deg) scale(1.1);
+    }
+  }
+}
+
+/* 主题切换按钮动画 */
+.theme-btn {
+  .theme-icon {
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+
+  &:hover .theme-icon {
+    transform: rotate(180deg) scale(1.1);
+  }
+}
+
+/* Logo区域优化 */
+.logo-container {
   display: flex;
   align-items: center;
-  padding: 8px 16px;
-  .el-icon {
-    font-size: 14px;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  .logo-image {
+    height: 24px;
+    width: auto;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+
+  .logo-text {
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
 }
 
-/* 头像 hover 效果 */
-.el-avatar {
-  transition: all 0.3s ease;
+/* 用户下拉菜单优化 */
+.user-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
   &:hover {
-    transform: scale(1.05);
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .user-avatar {
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+    &:hover {
+      transform: scale(1.05);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  .user-name {
+    margin-left: 8px;
+    margin-right: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+    @media (max-width: 640px) {
+      display: none;
+    }
+  }
+
+  .dropdown-arrow {
+    font-size: 12px;
+    color: #94a3b8;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+
+  &:hover .dropdown-arrow {
+    transform: translateY(1px);
+  }
+}
+
+/* 下拉菜单样式优化 */
+:deep(.el-dropdown-menu) {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  .el-dropdown-menu__item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+    &:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      transform: translateX(4px);
+    }
+
+    .el-icon {
+      font-size: 16px;
+      margin-right: 8px;
+    }
+  }
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .nav-btn {
+    padding: 6px;
+  }
+
+  .logo-container {
+    .logo-text {
+      font-size: 18px;
+    }
+  }
+}
+
+/* 暗黑模式下的特殊样式 */
+html.dark {
+  .user-dropdown-trigger {
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-name {
+      color: #cbd5e1;
+    }
+
+    .dropdown-arrow {
+      color: #94a3b8;
+    }
+  }
+
+  :deep(.el-dropdown-menu__item) {
+    &:hover {
+      background-color: rgba(59, 130, 246, 0.2);
+    }
   }
 }
 </style>
