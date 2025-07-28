@@ -44,8 +44,8 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('loginMeta');
   };
 
-  const login = async (username: string, password: string): Promise<LoginResponse> => {
-    const response = await loginAPI(username, password);
+  const login = async (account: string, password: string): Promise<LoginResponse> => {
+    const response = await loginAPI(account, password);
     // console.log('response: ',response)
     token.value = response.access_token;
     localStorage.setItem('access_token', response.access_token);

@@ -3,15 +3,15 @@ import { get, post } from '@/utils/http/axios';
 import type { LoginResponse, RegisterRequest, UserProfile, ChangePasswordRequest, RoleListResponse, GroupListResponse , VerifyAuthPasswordResponse , VerifyAuthPasswordRequest} from './types';
 
 // 登录
-export const login = (username: string, password: string): Promise<LoginResponse> => {
+export const login = (account: string, password: string): Promise<LoginResponse> => {
 
     // 验证参数
-    if (!username || !password) {
+    if (!account || !password) {
         return Promise.reject(new Error('用户名和密码不能为空'));
     }
 
     const loginData = {
-        username: username.trim(),
+        account: account.trim(),
         password: password.trim(),
     };
 

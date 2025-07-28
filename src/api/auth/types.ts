@@ -11,6 +11,8 @@ export interface LoginResponse {
 export interface RegisterRequest {
     username: string;
     password: string;
+    id_card: string;
+    phone: string;
     name: string;
     age: number;
     gender: string;
@@ -22,6 +24,8 @@ export interface UserProfile {
     id: number;
     username: string;
     name: string;
+    id_card: string;
+    phone: string;
     age: number;
     gender: string;
     enable: boolean;
