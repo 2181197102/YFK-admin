@@ -1,3 +1,6 @@
+<!-- ============================================================================
+     注册页面 - src/views/register/index.vue
+     ============================================================================ -->
 <template>
   <div class="register-container">
     <div class="register-box">
@@ -6,7 +9,6 @@
         <p>创建您的账号</p>
       </div>
 
-      <!-- 移除 @submit.prevent，避免表单自动提交导致的重复触发 -->
       <el-form
           ref="formRef"
           :model="registerForm"
@@ -15,7 +17,32 @@
           size="large"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="registerForm.username" placeholder="请输入用户名" clearable />
+          <el-input
+              v-model="registerForm.username"
+              placeholder="请输入用户名"
+              maxlength="14"
+              clearable
+          />
+        </el-form-item>
+
+        <el-form-item label="身份证号" prop="id_card">
+          <el-input
+              v-model="registerForm.id_card"
+              placeholder="请输入18位身份证号"
+              clearable
+              maxlength="18"
+              @input="onIdCardInput"
+              @blur="onIdCardBlur"
+          />
+        </el-form-item>
+
+        <el-form-item label="手机号码" prop="phone">
+          <el-input
+              v-model="registerForm.phone"
+              placeholder="请输入11位手机号码"
+              clearable
+              maxlength="11"
+          />
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
@@ -51,7 +78,11 @@
                   :min="1"
                   :max="120"
                   style="width: 100%"
+                  :disabled="ageFromIdCard"
               />
+              <div v-if="ageFromIdCard" class="age-tip">
+                <el-text size="small" type="info">* 已从身份证号自动填充</el-text>
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -61,10 +92,14 @@
                   placeholder="请选择性别"
                   clearable
                   style="width: 100%"
+                  :disabled="genderFromIdCard"
               >
                 <el-option label="男" value="M" />
                 <el-option label="女" value="F" />
               </el-select>
+              <div v-if="genderFromIdCard" class="gender-tip">
+                <el-text size="small" type="info">* 已从身份证号自动填充</el-text>
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -163,6 +198,8 @@ const router = useRouter()
 /* ------------------------- 表单数据 ------------------------- */
 const registerForm = reactive({
   username: '',
+  id_card: '',
+  phone: '',
   password: '',
   confirmPassword: '',
   name: '',
@@ -172,6 +209,56 @@ const registerForm = reactive({
   group: '',
   authPassword: '',
 })
+
+/* ------------------------- 身份证号相关状态 ------------------------- */
+const ageFromIdCard = ref(false)
+const genderFromIdCard = ref(false)
+
+/* ------------------------- 身份证号验证和信息提取工具函数 ------------------------- */
+const validateIdCard = (idCard: string): boolean => {
+  if (!idCard || idCard.length !== 18) return false
+
+  const reg = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/
+  if (!reg.test(idCard)) return false
+
+  // 验证校验码
+  const factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+  const parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2]
+  let sum = 0
+  for (let i = 0; i < 17; i++) {
+    sum += Number(idCard[i]) * factor[i]
+  }
+  const last = parity[sum % 11]
+  return last.toString().toUpperCase() === idCard[17].toUpperCase()
+}
+
+const extractInfoFromIdCard = (idCard: string) => {
+  if (!validateIdCard(idCard)) return null
+
+  // 提取出生日期
+  const year = parseInt(idCard.substring(6, 10))
+  const month = parseInt(idCard.substring(10, 12))
+  const day = parseInt(idCard.substring(12, 14))
+
+  // 计算年龄
+  const today = new Date()
+  const birthDate = new Date(year, month - 1, day)
+  let age = today.getFullYear() - year
+  if (today.getMonth() < month - 1 || (today.getMonth() === month - 1 && today.getDate() < day)) {
+    age--
+  }
+
+  // 提取性别 (倒数第二位数字，奇数为男，偶数为女)
+  const genderCode = parseInt(idCard.substring(16, 17))
+  const gender = genderCode % 2 === 1 ? 'M' : 'F'
+
+  return { age, gender, birthDate }
+}
+
+const validatePhone = (phone: string): boolean => {
+  const reg = /^1[3-9]\d{9}$/
+  return reg.test(phone)
+}
 
 /* ------------------------- 列表数据 ------------------------- */
 const roles = ref<Role[]>([])
@@ -190,6 +277,43 @@ const filteredRoles = computed(() =>
 
 const showAuthPassword = computed(() => registerForm.role && registerForm.role !== '患者')
 
+/* ------------------------- 身份证号输入处理 ------------------------- */
+const onIdCardInput = (value: string) => {
+  // 只允许输入数字和X
+  const cleanValue = value.replace(/[^0-9Xx]/g, '').toUpperCase()
+  registerForm.id_card = cleanValue
+
+  if (cleanValue.length === 18) {
+    const info = extractInfoFromIdCard(cleanValue)
+    if (info) {
+      registerForm.age = info.age
+      registerForm.gender = info.gender
+      ageFromIdCard.value = true
+      genderFromIdCard.value = true
+
+      ElMessage.success('已自动填充年龄和性别信息')
+    }
+  } else {
+    // 如果身份证号不完整，清除自动填充的信息
+    if (ageFromIdCard.value) {
+      registerForm.age = undefined
+      ageFromIdCard.value = false
+    }
+    if (genderFromIdCard.value) {
+      registerForm.gender = ''
+      genderFromIdCard.value = false
+    }
+  }
+}
+
+const onIdCardBlur = () => {
+  if (registerForm.id_card && registerForm.id_card.length === 18) {
+    if (!validateIdCard(registerForm.id_card)) {
+      ElMessage.error('身份证号格式不正确，请检查')
+    }
+  }
+}
+
 /* ------------------------- 表单规则 ------------------------- */
 const validateAuthPassword = (rule: any, value: string, callback: Function) => {
   if (showAuthPassword.value && !value) {
@@ -199,10 +323,41 @@ const validateAuthPassword = (rule: any, value: string, callback: Function) => {
   }
 }
 
+const validateIdCardRule = (rule: any, value: string, callback: Function) => {
+  if (!value) {
+    callback(new Error('请输入身份证号'))
+  } else if (value.length !== 18) {
+    callback(new Error('身份证号必须为18位'))
+  } else if (!validateIdCard(value)) {
+    callback(new Error('身份证号格式不正确'))
+  } else {
+    callback()
+  }
+}
+
+const validatePhoneRule = (rule: any, value: string, callback: Function) => {
+  if (!value) {
+    callback(new Error('请输入手机号码'))
+  } else if (!validatePhone(value)) {
+    callback(new Error('手机号码格式不正确'))
+  } else {
+    callback()
+  }
+}
+
 const rules = reactive<FormRules>({
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { required: true, message: '请输入用户名，3-14个字符', trigger: 'blur' },
     { min: 3, message: '用户名至少3个字符', trigger: 'blur' },
+    { max: 14, message: '用户名最多14个字符', trigger: 'blur' },
+  ],
+  id_card: [
+    { required: true, message: '请输入18位身份证号', trigger: 'blur' },
+    { validator: validateIdCardRule, trigger: 'blur' }
+  ],
+  phone: [
+    { required: true, message: '请输入11位手机号码', trigger: 'blur' },
+    { validator: validatePhoneRule, trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -284,7 +439,6 @@ const handleRegister = debounce(async () => {
   if (!formRef.value) return
 
   loading.value = true
-  // console.log("开始时的：",loading.value)
   try {
     const valid = await formRef.value.validate()
     if (!valid) {
@@ -294,13 +448,9 @@ const handleRegister = debounce(async () => {
 
     if (showAuthPassword.value) {
       const ok = await validateAuthPasswordApi(registerForm.authPassword)
-      // console.log("授权密码验证完：",loading.value)
       if (!ok) {
-        // console.log("授权密码错误前：",loading.value)
-        // ElMessage.error('授权密码错误2222')
-        // console.log("授权密码错误后：",loading.value)
+        // ElMessage.error('授权密码错误')
         loading.value = false
-        // console.log("授权密码错误后，状态重置：",loading.value)
         return
       }
     }
@@ -311,6 +461,8 @@ const handleRegister = debounce(async () => {
       name: registerForm.name,
       age: registerForm.age!,
       gender: registerForm.gender,
+      id_card: registerForm.id_card,
+      phone: registerForm.phone,
       role: registerForm.role,
       group: registerForm.group,
     }
@@ -386,7 +538,9 @@ onMounted(() => {
   padding: 20px;
   text-align: center;
 }
-.auth-password-tip {
+.auth-password-tip,
+.age-tip,
+.gender-tip {
   margin-top: 4px;
   .el-text {
     font-size: 12px;
