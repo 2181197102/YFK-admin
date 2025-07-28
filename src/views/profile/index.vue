@@ -55,6 +55,21 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <div class="info-item">
+                  <label class="info-label">身份证号：</label>
+                  <span class="info-value">{{ userStore.userProfile?.id_card || '-' }}</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="info-item">
+                  <label class="info-label">手机号码</label>
+                  <span class="info-value">{{ userStore.userProfile?.phone || '-' }}</span>
+                </div>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="info-item">
                   <label class="info-label">年龄：</label>
                   <span class="info-value">
                     {{ userStore.userProfile?.age ? userStore.userProfile.age + ' 岁' : '-' }}
