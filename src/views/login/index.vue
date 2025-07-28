@@ -1,3 +1,6 @@
+<!-- ============================================================================
+     登录页面 - src/views/login/index.vue
+     ============================================================================ -->
 <template>
   <div class="login-container">
     <div class="login-box">
@@ -13,13 +16,13 @@
           label-width="0px"
           size="large"
       >
-        <el-form-item prop="username">
+        <el-form-item prop="account">
           <el-input
-              v-model="loginForm.username"
-              placeholder="请输入用户名"
+              v-model="loginForm.account"
+              placeholder="请输入用户名或身份证号"
               :prefix-icon="User"
               clearable
-              @blur="onUsernameBlur"
+              @blur="onAccountBlur"
           />
         </el-form-item>
 
@@ -57,10 +60,6 @@
           <el-button type="text" @click="goToRegister">
             还没有账号？立即注册
           </el-button>
-
-<!--          <el-button type="text" @click="fillTestData">-->
-<!--            填充测试数据-->
-<!--          </el-button>-->
         </div>
       </div>
     </div>
@@ -79,15 +78,40 @@ const userStore = useUserStore();
 
 // 表单数据
 const loginForm = reactive({
-  username: '',
+  account: '',
   password: '',
 });
 
+// 身份证号验证函数
+const validateIdCard = (idCard: string): boolean => {
+  const reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+  return reg.test(idCard);
+};
+
 // 表单验证规则
 const rules = reactive<FormRules>({
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, message: '用户名至少3个字符', trigger: 'blur' },
+  account: [
+    { required: true, message: '请输入用户名或身份证号', trigger: 'blur' },
+    {
+      validator: (rule: any, value: string, callback: Function) => {
+        if (!value) {
+          callback(new Error('请输入用户名或身份证号'));
+          return;
+        }
+        // 如果输入的是身份证号格式，进行身份证号验证
+        if (value.length >= 15 && /^\d/.test(value)) {
+          if (!validateIdCard(value)) {
+            callback(new Error('身份证号格式不正确'));
+            return;
+          }
+        } else if (value.length < 3) {
+          callback(new Error('用户名至少3个字符'));
+          return;
+        }
+        callback();
+      },
+      trigger: 'blur'
+    },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -99,16 +123,23 @@ const rules = reactive<FormRules>({
 const formRef = ref<FormInstance>();
 const loading = ref(false);
 
-// 用户名失焦事件
-const onUsernameBlur = () => {};
+// 账号失焦事件
+const onAccountBlur = () => {
+  const account = loginForm.account.trim();
+  if (account && account.length >= 15 && /^\d/.test(account)) {
+    if (!validateIdCard(account)) {
+      ElMessage.warning('身份证号格式不正确');
+    }
+  }
+};
 
 // 登录处理
 const handleLogin = async () => {
-  const username = loginForm.username.trim();
+  const account = loginForm.account.trim();
   const password = loginForm.password.trim();
 
-  if (!username) {
-    ElMessage.warning('请输入用户名');
+  if (!account) {
+    ElMessage.warning('请输入用户名或身份证号码');
     return;
   }
 
@@ -120,7 +151,7 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    await userStore.login(username, password);
+    await userStore.login(account, password);
     ElMessage.success('登录成功');
     await nextTick();
     router.push('/dashboard');
@@ -147,13 +178,6 @@ const handleLoginClick = async () => {
 // 跳转到注册页面
 const goToRegister = () => {
   router.push('/register');
-};
-
-// 填充测试数据
-const fillTestData = () => {
-  loginForm.username = 'testuser';
-  loginForm.password = 'testpass123';
-  ElMessage.success('已填充测试数据');
 };
 </script>
 
