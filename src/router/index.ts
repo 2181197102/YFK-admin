@@ -119,16 +119,33 @@ const routes = [
         },
         children: [
           {
-            path: '/research/projects',
+            path: '/research/projects', // 子路由路径：/research/projects
             name: 'ResearchProjects',
             meta: {
               title: '研究项目',
               requiresAuth: true,
               roles: ['RESEARCHER', 'ADMIN'],
             },
-            component: () => import('@/views/research/projects/index.vue'),
+            // 关键：指向选择界面组件的正确路径
+            component: () => import('@/views/research/projects/SelectionView.vue'), 
           },
-        ],
+          {
+            path: '/research/projects',
+            name: 'ProjectStats',
+            meta: {
+              title: '审计统计数据',
+              requiresAuth: true,
+              roles: ['RESEARCHER', 'ADMIN'],
+            },
+            component: () => import('@/views/research/projects/AuditStatsView.vue'),
+            props: route => ({
+              institutions: route.query.institutions as string,
+              diseases: route.query.diseases as string,
+              institutionNames: route.query.institutionNames as string,
+              diseaseNames: route.query.diseaseNames as string
+            })
+          }
+        ]
       },
 
       // ============= 医生路由 =============
