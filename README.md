@@ -128,6 +128,61 @@ pnpm dev
 
 ```
 
+# 🔧 子页面设计说明（多页面功能场景）
+
+在某些业务功能中，一个页面不足以承载全部功能时，可以在该功能对应的一级页面路由下添加多个子页面作为子路由进行跳转与管理。
+
+#### ✅ 设计原则：
+
+1. **保持模块清晰划分**：
+   - 若某功能较为复杂，例如“数据分析”需要包含“上传数据”、“查看结果”、“模型管理”等多个页面，则在 `views/research/analysis` 下分别创建 `upload/index.vue`、`result/index.vue`、`model/index.vue` 等。
+2. **路由中使用子路由结构**：
+   - 将该功能的主页面作为父路由，其他附属页面作为 `children` 添加到父路由中。
+3. **附属页面不设置菜单标题**：
+   - 只有主页面（父路由）设置 `meta.title`，用于侧边栏菜单显示；
+   - 其他子页面**不需要设置** `title` 属性，防止在左侧菜单中出现多余页面入口，保持菜单简洁。
+
+------
+
+#### ✍️ 路由书写示例（多页面功能）
+
+```
+ts复制编辑{
+  path: '/research/analysis',
+  name: 'Analysis',
+  meta: {
+    title: '数据分析',
+    requiresAuth: true,
+    roles: ['RESEARCHER'],
+  },
+  children: [
+    {
+      path: '', // 默认页（跳转地址为 /research/analysis）
+      name: 'AnalysisHome',
+      component: () => import('@/views/research/analysis/index.vue'),
+    },
+    {
+      path: 'upload', // 附属页面1
+      name: 'AnalysisUpload',
+      meta: {
+        requiresAuth: true,
+        roles: ['RESEARCHER'],
+      },
+      component: () => import('@/views/research/analysis/upload/index.vue'),
+    },
+    {
+      path: 'result', // 附属页面2
+      name: 'AnalysisResult',
+      meta: {
+        requiresAuth: true,
+        roles: ['RESEARCHER'],
+      },
+      component: () => import('@/views/research/analysis/result/index.vue'),
+    },
+  ],
+}
+```
+
 # 技术文档
 
 参考：https://zread.ai/2181197102/YFK-admin
