@@ -2,36 +2,40 @@
 import { routes } from '@/router/index';
 import { getGeneralRoleFromToken, getRoleCodeFromToken } from '@/utils/auth';
 
-function extractMenusFromRoutes(routes: any[]): any[] {
+function extractMenusFromRoutes(routes: any[], excludePaths: string[] = []): any[] {
     return routes.flatMap(route => {
         // 如果是布局路由，提取其子路由作为菜单
         if (route.name === 'AppLayout' && route.children) {
-            return route.children.filter(child => {
-                // 过滤出需要在菜单中显示的路由
-                const excludePaths = ['/profile']; // 需要排除的菜单路径在这里添加
-                return !excludePaths.includes(child.path) && child.meta?.title;
-            }).map(child => {
-                const menu: any = {
-                    path: child.path,
-                    name: child.name,
-                    meta: child.meta,
-                };
+            return route.children
+                .filter(child => child.meta?.title && !excludePaths.includes(child.path))
+                .map(child => {
+                    const menu: any = {
+                        path: child.path,
+                        name: child.name,
+                        meta: child.meta,
+                    };
 
-                // 处理子路由
-                if (child.children && child.children.length > 0) {
-                    menu.children = child.children.map(grandChild => ({
-                        path: grandChild.path,
-                        name: grandChild.name,
-                        meta: grandChild.meta,
-                    }));
-                }
+                    // 子菜单处理，递归过滤子节点
+                    if (child.children && child.children.length > 0) {
+                        menu.children = child.children
+                            .filter(grandChild => grandChild.meta?.title && !excludePaths.includes(grandChild.path))
+                            .map(grandChild => ({
+                                path: grandChild.path,
+                                name: grandChild.name,
+                                meta: grandChild.meta,
+                            }));
 
-                return menu;
-            });
+                        // 如果子菜单全部被过滤掉，可以不返回 children 字段
+                        if (menu.children.length === 0) {
+                            delete menu.children;
+                        }
+                    }
+
+                    return menu;
+                });
         }
 
-        // 对于其他路由，保持原有逻辑
-        const excludePaths = ['/login', '/profile', '/register', '/403', '/:pathMatch(.*)*', '/', '/app'];
+        // 对于非布局路由，继续原有逻辑
         if (!excludePaths.includes(route.path) && route.meta?.title) {
             const menu: any = {
                 path: route.path,
@@ -40,11 +44,17 @@ function extractMenusFromRoutes(routes: any[]): any[] {
             };
 
             if (route.children && route.children.length > 0) {
-                menu.children = route.children.map(child => ({
-                    path: child.path,
-                    name: child.name,
-                    meta: child.meta,
-                }));
+                menu.children = route.children
+                    .filter(child => child.meta?.title && !excludePaths.includes(child.path))
+                    .map(child => ({
+                        path: child.path,
+                        name: child.name,
+                        meta: child.meta,
+                    }));
+
+                if (menu.children.length === 0) {
+                    delete menu.children;
+                }
             }
 
             return [menu];
@@ -53,6 +63,7 @@ function extractMenusFromRoutes(routes: any[]): any[] {
         return [];
     });
 }
+
 
 /**
  * 根据用户角色过滤菜单
@@ -96,9 +107,10 @@ export const getUserMenus = (): any[] => {
         return [];
     }
 
-    // 从路由配置中提取菜单数据
-    const allMenus = extractMenusFromRoutes(routes);
+    // 设置你想要隐藏的路径（子路由路径也可以，支持屏蔽子菜单 如： /research/projects）
+    const excludePaths = ['/login', '/profile', '/register', '/403', '/:pathMatch(.*)*', '/', '/app', '/profile'];
 
-    // 根据用户角色过滤菜单
+    // 提取并过滤菜单
+    const allMenus = extractMenusFromRoutes(routes, excludePaths);
     return filterMenusByRole(allMenus, userRole);
 };
