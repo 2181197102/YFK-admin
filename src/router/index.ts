@@ -107,46 +107,67 @@ const routes = [
         ],
       },
 
-      // ============= 研究员路由 =============
-      {
-        path: '/research',
-        name: 'Research',
-        meta: {
-          title: '研究中心',
-          requiresAuth: true,
-          roles: ['RESEARCHER', 'ADMIN'],
-          icon: 'search',
-        },
-        children: [
-          {
-            path: '/research/projects', // 子路由路径：/research/projects
-            name: 'ResearchProjects',
-            meta: {
-              title: '研究项目',
-              requiresAuth: true,
-              roles: ['RESEARCHER', 'ADMIN'],
-            },
-            // 关键：指向选择界面组件的正确路径
-            component: () => import('@/views/research/projects/SelectionView.vue'), 
-          },
-          {
-            path: '/research/projects',
-            name: 'ProjectStats',
-            meta: {
-              title: '审计统计数据',
-              requiresAuth: true,
-              roles: ['RESEARCHER', 'ADMIN'],
-            },
-            component: () => import('@/views/research/projects/AuditStatsView.vue'),
-            props: route => ({
-              institutions: route.query.institutions as string,
-              diseases: route.query.diseases as string,
-              institutionNames: route.query.institutionNames as string,
-              diseaseNames: route.query.diseaseNames as string
-            })
-          }
-        ]
+    // ============= 研究员路由 =============
+    {
+      path: '/research',
+      name: 'Research',
+      meta: {
+        title: '研究中心',
+        requiresAuth: true,
+        roles: ['RESEARCHER', 'ADMIN'],
+        icon: 'search',
       },
+      children: [
+        {
+          path: '/research/projects',
+          name: 'ResearchProjects',
+          meta: {
+            title: '研究项目',
+            requiresAuth: true,
+            roles: ['RESEARCHER', 'ADMIN'],
+          },
+          children: [
+            {
+              path: '',
+              name: 'ProjectSelection',
+              component: () => import('@/views/research/projects/SelectionView.vue'),
+            },
+            {
+              path: '',
+              name: 'ProjectStats',
+              // 注意：不要加 title，否则菜单就会渲染它
+              meta: {
+                requiresAuth: true,
+                roles: ['RESEARCHER', 'ADMIN'],
+              },
+              component: () => import('@/views/research/projects/AuditStatsView.vue'),
+              props: route => ({
+                institutions: route.query.institutions as string,
+                diseases: route.query.diseases as string,
+                institutionNames: route.query.institutionNames as string,
+                diseaseNames: route.query.diseaseNames as string,
+              }),
+            },
+            {
+              path: '',
+              name: 'MedicaData',
+              // 注意：不要加 title，否则菜单就会渲染它
+              meta: {
+                requiresAuth: true,
+                roles: ['RESEARCHER', 'ADMIN'],
+              },
+              component: () => import('@/views/research/projects/MedicalDataView.vue'),
+              props: route => ({
+                institutions: route.query.institutions as string,
+                diseases: route.query.diseases as string,
+                institutionNames: route.query.institutionNames as string,
+                diseaseNames: route.query.diseaseNames as string,
+              }),
+            },
+          ],
+        }
+      ]
+    },
 
       // ============= 医生路由 =============
       {
@@ -160,48 +181,54 @@ const routes = [
         },
         children: [
           {
-            path: '/doctor/patients',
-            name: 'PatientList',
-            meta: {
-              title: '患者列表',
-              requiresAuth: true,
-              roles: ['DOCTOR', 'ADMIN'], // 支持所有医生角色
-            },
-            component: () => import('@/views/doctor/patients/index.vue'),
-          },
-          {
-            path: '/doctor/medical-records',
-            name: 'MedicalRecords',
-            meta: {
-              title: '病历管理',
-              requiresAuth: true,
-              roles: ['DOCTOR', 'ADMIN'], // 支持所有医生角色
-            },
-            component: () => import('@/views/doctor/medical-records/index.vue'),
-          },
-          // 示例：只有家庭医生可以访问的路由
-          {
             path: '/doctor/family-patients',
-            name: 'FamilyPatients',
+            name: 'doctors',
             meta: {
               title: '家庭患者管理',
               requiresAuth: true,
-              roles: ['FAMILY_DOCTOR', 'ADMIN'], // 只有家庭医生可以访问
+              roles: ['DOCTOR', 'ADMIN'], // 只有家庭医生可以访问
             },
-            component: () => import('@/views/doctor/family-patients/index.vue'),
-          },
-          // 示例：只有急诊医生可以访问的路由
-          {
-            path: '/doctor/emergency',
-            name: 'EmergencyManagement',
-            meta: {
-              title: '急诊管理',
-              requiresAuth: true,
-              roles: ['EMERGENCY_DOCTOR', 'ADMIN'], // 只有急诊医生可以访问
-            },
-            component: () => import('@/views/doctor/emergency/index.vue'),
-          },
-        ],
+            children: [
+              {
+                path: '',
+                name: 'PatientList',
+                component: () => import('@/views/doctor/family-patients/PatientList.vue'),
+              },
+              {
+                path: '',
+                name: 'Patient_detail',
+                // 注意：不要加 title，否则菜单就会渲染它
+                meta: {
+                  requiresAuth: true,
+                  roles: ['DOCTOR', 'ADMIN'],
+                },
+                component: () => import('@/views/doctor/family-patients/PatientDetail.vue'),
+                props: route => ({
+                  institutions: route.query.institutions as string,
+                  diseases: route.query.diseases as string,
+                  institutionNames: route.query.institutionNames as string,
+                  diseaseNames: route.query.diseaseNames as string,
+                }),
+              },
+              {
+                path: '',
+                name: 'TrustValue',
+                // 注意：不要加 title，否则菜单就会渲染它
+                meta: {
+                  requiresAuth: true,
+                  roles: ['DOCTOR', 'ADMIN'],
+                },
+                component: () => import('@/views/doctor/family-patients/TrustValue.vue'),
+                props: route => ({
+                  institutions: route.query.institutions as string,
+                  diseases: route.query.diseases as string,
+                  institutionNames: route.query.institutionNames as string,
+                  diseaseNames: route.query.diseaseNames as string,
+                }),
+              },
+            ],
+          }
+        ]
       },
 
       // ============= 患者路由 =============

@@ -1,114 +1,109 @@
-import { ApiResponse, AuditStats, MedicalRecordResponse } from './types';
+import axios,{AxiosResponse} from 'axios';
+import { 
+  QueryParams, 
+  TrustValueResponse, 
+  DiseaseDataCodeResponse,
+  MedicalDataResponse
+} from './types';
+import { getToken } from '@/utils/auth';
 
+// // 获取认证令牌
+const token = getToken();
 
-const getHeaders = (): HeadersInit => {
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1Mzg1MTU4MSwianRpIjoiNjdmMWYxZWUtMThkNy00MDFlLWFlY2ItNTY4ZjE4NjU2MjllIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NTM4NTE1ODEsImV4cCI6MTc1MzkzNzk4MSwidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVfY29kZSI6IkFETUlOIiwiZ3JvdXBfbmFtZSI6Ilx1N2JhMVx1NzQwNlx1NTQ1OFx1NmQ0Ylx1OGJkNVx1NTMzYlx1OTY2MiJ9.Xclz6x5252yVapJmvpbmbEJtNrOLrXJC1u4bwXjZjCw';
-  return {
+// 创建Axios实例（统一配置超时、请求头、认证信息）
+const api = axios.create({
+  timeout: 15000,
+  headers: {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
+    'Authorization': `Bearer ${token}` // 携带认证令牌
+  }
+});
+
+// // 响应拦截器
+// api.interceptors.response.use(
+//   (response) => {
+//     return response;
+//   },
+//   (error) => {
+//     // 统一错误处理
+//     let errorMessage = '请求失败，请稍后重试';
+//     if (error.response) {
+//       switch (error.response.status) {
+//         case 400:
+//           errorMessage = '请求参数错误';
+//           break;
+//         case 401:
+//           errorMessage = '未授权，请重新登录';
+//           break;
+//         case 404:
+//           errorMessage = '请求的资源不存在';
+//           break;
+//         case 500:
+//           errorMessage = '服务器内部错误';
+//           break;
+//       }
+//     } else if (error.request) {
+//       errorMessage = '网络错误，无法连接服务器';
+//     }
+    
+//     return Promise.reject(new Error(errorMessage));
+//   }
+// );
+
+export const getDiseaseDataCodes = async (): Promise<DiseaseDataCodeResponse> => {
+  const response = await api.get<DiseaseDataCodeResponse>(
+    'http://127.0.0.1:7878/api/medical_record/disease-data-codes'
+  );
+  return response.data;
 };
 
-/**
- * 获取审计统计数据
- * @param diseaseCodes 选中的病种代码数组
- * @returns 统计数据响应
- */
-export const getAuditStats = async (
-  diseaseCodes: string[]
-): Promise<ApiResponse<AuditStats>> => {
+export const checkTrustValue = async (
+  params: Partial<QueryParams>
+): Promise<TrustValueResponse> => {
   try {
-    // 获取令牌
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1NDAxMjcyOCwianRpIjoiZDg3OWQxMzQtODE4My00OGFmLWFiMDItNjFhNzRhNjY0OWVmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NTQwMTI3MjgsImV4cCI6MTc1NDA5OTEyOCwidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVfY29kZSI6IkFETUlOIiwiZ3JvdXBfbmFtZSI6Ilx1N2JhMVx1NzQwNlx1NTQ1OFx1NmQ0Ylx1OGJkNVx1NTMzYlx1OTY2MiJ9.hw74l9Qa4FyAJuIyvgvlc46ddh5K76sCjyk_hk8EPPg';
-    if (!token) {
-      return {
-        status: 401,
-        error: '未授权访问，请先登录'
-      };
-    }
-
-    // 发送请求
-    const response = await fetch('http://localhost:7878/api/audit/my-stats', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // 携带认证令牌
+    const response: AxiosResponse<TrustValueResponse> = await api.post(
+      'http://127.0.0.1:7878/api/medical_record/get_sensitive_data',
+      {
+        disease_code: params.disease_codes,
+        data_code: params.data_code || []
       }
-    });
-
-    // 解析响应
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (error) {
-      responseData = {};
-    }
-
-    // 处理错误状态
-    if (!response.ok) {
-      return {
-        status: response.status,
-        error: responseData.error || `请求失败 (${response.status})`
-      };
-    }
-
-    // 返回成功数据
-    return {
-      status: response.status,
-      data: responseData as AuditStats
-    };
-  } catch (error) {
-    console.error('获取审计数据失败:', error);
-    return {
-      status: 500,
-      error: error instanceof Error ? error.message : '网络请求失败'
-    };
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('检查敏感数据信任值失败:', error);
+    throw new Error(error.response?.data?.message || '检查敏感数据信任值时发生错误');
   }
 };
 
-/**
- * 获取病历数据
- * @param diseaseCodes 选中的病种代码数组
- * @returns 病历数据响应
- */
 export const getMedicalRecords = async (
-  diseaseCodes: string[]
-): Promise<ApiResponse<MedicalRecordResponse>> => {
-  try {
-    // 发送请求
-    const response = await fetch('http://127.0.0.1:7878/api/medical_record/get_record_by_disease', {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ disease_codes: diseaseCodes }),
-      signal: AbortSignal.timeout(10000)
-    });
+  params: QueryParams
+): Promise<MedicalDataResponse> => {
+  // 转换机构ID为机构标识（1 -> ins1, 2 -> ins2, 3 -> ins3）
+  const institutions = params.ins_codes.map(id => `ins${id}`);
+  
+  const response: AxiosResponse<MedicalDataResponse> = await api.post(
+    'http://127.0.0.1:7878/api/medical_record/get_record_data',
+    {
+      data_code: params.data_code,
+      nums: params.nums,
+      institutions: institutions,
+      Trustvalue: params.Trustvalue,
+      sensitive: params.sensitive,
 
-    // 解析响应
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (error) {
-      responseData = {};
     }
-
-    // 处理错误状态
-    if (!response.ok) {
-      return {
-        status: response.status,
-        error: responseData.error || `请求失败 (${response.status})`
-      };
-    }
-
-    // 返回成功数据
-    return {
-      status: response.status,
-      data: responseData as MedicalRecordResponse
-    };
-  } catch (error) {
-    console.error('获取病历数据失败:', error);
-    return {
-      status: 500,
-      error: error instanceof Error ? error.message : '网络请求失败'
-    };
-  }
+  );
+  
+  return response.data;
 };
+
+export const add_ob_num_download = async (): Promise<void> => {
+  try {
+    // 发送空体POST请求到add_ob_num_download接口，无需传入任何参数
+    await api.post('http://127.0.0.1:7878/api/audit/add_ob_num_download', {});
+  } catch (error: any) {
+    // 捕获错误，仅抛出错误信息（无需处理返回参数）
+    throw new Error(
+      error.response?.data?.message || '发送下载记录指令失败（add_ob_num_download）'
+    );
+  }
+}

@@ -27,6 +27,9 @@ declare module 'vue-router/auto-routes' {
     '/dashboard/': RouteRecordInfo<'/dashboard/', '/dashboard', Record<never, never>, Record<never, never>>,
     '/doctor/emergency/': RouteRecordInfo<'/doctor/emergency/', '/doctor/emergency', Record<never, never>, Record<never, never>>,
     '/doctor/family-patients/': RouteRecordInfo<'/doctor/family-patients/', '/doctor/family-patients', Record<never, never>, Record<never, never>>,
+    '/doctor/family-patients/PatientDetail': RouteRecordInfo<'/doctor/family-patients/PatientDetail', '/doctor/family-patients/PatientDetail', Record<never, never>, Record<never, never>>,
+    '/doctor/family-patients/PatientList': RouteRecordInfo<'/doctor/family-patients/PatientList', '/doctor/family-patients/PatientList', Record<never, never>, Record<never, never>>,
+    '/doctor/family-patients/TrustValue': RouteRecordInfo<'/doctor/family-patients/TrustValue', '/doctor/family-patients/TrustValue', Record<never, never>, Record<never, never>>,
     '/doctor/medical-records/': RouteRecordInfo<'/doctor/medical-records/', '/doctor/medical-records', Record<never, never>, Record<never, never>>,
     '/doctor/patients/': RouteRecordInfo<'/doctor/patients/', '/doctor/patients', Record<never, never>, Record<never, never>>,
     '/error/403': RouteRecordInfo<'/error/403', '/error/403', Record<never, never>, Record<never, never>>,
@@ -37,6 +40,7 @@ declare module 'vue-router/auto-routes' {
     '/register/': RouteRecordInfo<'/register/', '/register', Record<never, never>, Record<never, never>>,
     '/research/projects/': RouteRecordInfo<'/research/projects/', '/research/projects', Record<never, never>, Record<never, never>>,
     '/research/projects/AuditStatsView': RouteRecordInfo<'/research/projects/AuditStatsView', '/research/projects/AuditStatsView', Record<never, never>, Record<never, never>>,
+    '/research/projects/MedicalDataView': RouteRecordInfo<'/research/projects/MedicalDataView', '/research/projects/MedicalDataView', Record<never, never>, Record<never, never>>,
     '/research/projects/SelectionView': RouteRecordInfo<'/research/projects/SelectionView', '/research/projects/SelectionView', Record<never, never>, Record<never, never>>,
   }
 }

@@ -1,505 +1,336 @@
 <template>
-  <div class="result-container">
-    <!-- 页面标题 -->
+  <div class="trust-value-container">
     <el-page-header 
       @back="handleBack"
-      content="统计结果展示"
-      class="page-header"
+      content="信任值检查结果"
     />
 
-    <!-- 选择信息展示 -->
-    <el-card class="selection-info" v-if="selectedCodes.length > 0">
-      <div class="info-content">
-        <span class="info-label">已选病种代码：</span>
-        <span class="info-value">{{ selectedLabels }}</span>
+    <el-card class="trust-card">
+      <!-- 信任值概览 -->
+      <div class="trust-overview">
+        <div class="trust-score">
+          <div class="score-label">当前信任值</div>
+          <div class="score-value" :class="scoreClass">
+            {{ trustData.Trustvalue.toFixed(2) }}
+          </div>
+          <el-tag 
+            :type="trustData.Trustvalue >= trustData.sensitive ? 'success' : 'danger'"
+            class="trust-tag"
+          >
+            {{ trustData.Trustvalue >= trustData.sensitive ? '验证通过' : '验证未通过' }}
+          </el-tag>
+        </div>
+        
+        <div class="sensitivity-info">
+          <span class="sensitivity-label">数据敏感度阈值：</span>
+          <span class="sensitivity-value">{{ trustData.sensitive.toFixed(2) }}</span>
+        </div>
+        
+        <div class="score-description">
+          {{ getScoreDescription() }}
+        </div>
+      </div>
+
+      <!-- 数据量选择区域 -->
+      <el-form-item 
+        label="选择数据量" 
+        class="data-count-selector"
+        v-if="canProceed"
+      >
+        <el-input-number
+          v-model="dataCount"
+          :min="0"
+          :max="maxDataCount"
+          :step="10"
+          :disabled="loading"
+          controls-position="right"
+          placeholder="请输入数据量"
+        />
+        <div class="form-hint">
+          {{ dataCountHint }}
+        </div>
+      </el-form-item>
+
+      <!-- 信任值详情 -->
+      <el-collapse 
+        v-model="activePanels" 
+        class="trust-details"
+        border
+      >
+        <el-collapse-item title="访问位置统计" name="location">
+          <el-descriptions column="2" border>
+            <el-descriptions-item label="异常位置访问">
+              <span class="stat-value">{{ trustData.access_location.num_ad }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="正常位置访问">
+              <span class="stat-value">{{ trustData.access_location.num_nd }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-collapse-item>
+        
+        <el-collapse-item title="访问时段统计" name="period">
+          <el-descriptions column="2" border>
+            <el-descriptions-item label="正常时段访问">
+              <span class="stat-value">{{ trustData.access_period.num_ni }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="异常时段访问">
+              <span class="stat-value">{{ trustData.access_period.num_ui }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-collapse-item>
+        
+        <el-collapse-item title="操作行为统计" name="behavior">
+          <el-descriptions column="3" border>
+            <el-descriptions-item label="添加">{{ trustData.operation_behavior.num_add }}</el-descriptions-item>
+            <el-descriptions-item label="复制">{{ trustData.operation_behavior.num_copy }}</el-descriptions-item>
+            <el-descriptions-item label="删除">{{ trustData.operation_behavior.num_delete }}</el-descriptions-item>
+            <el-descriptions-item label="下载">{{ trustData.operation_behavior.num_download }}</el-descriptions-item>
+            <el-descriptions-item label="修改">{{ trustData.operation_behavior.num_revise }}</el-descriptions-item>
+            <el-descriptions-item label="查看">{{ trustData.operation_behavior.num_view }}</el-descriptions-item>
+          </el-descriptions>
+        </el-collapse-item>
+        
+        <el-collapse-item title="数据敏感度统计" name="sensitivity">
+          <el-descriptions column="4" border>
+            <el-descriptions-item label="级别1">{{ trustData.data_sensitivity.num1 }}</el-descriptions-item>
+            <el-descriptions-item label="级别2">{{ trustData.data_sensitivity.num2 }}</el-descriptions-item>
+            <el-descriptions-item label="级别3">{{ trustData.data_sensitivity.num3 }}</el-descriptions-item>
+            <el-descriptions-item label="级别4">{{ trustData.data_sensitivity.num4 }}</el-descriptions-item>
+          </el-descriptions>
+        </el-collapse-item>
+      </el-collapse>
+
+      <!-- 操作按钮 -->
+      <div class="trust-actions">
+        <el-button 
+          type="default" 
+          @click="handleBack"
+          :disabled="loading"
+        >
+          返回修改
+        </el-button>
+        
+        <el-button 
+          type="primary" 
+          @click="handleGetMedicalData"
+          :disabled="!canProceed || !isDataCountValid || loading"
+          :loading="loading"
+        >
+          <el-icon v-if="loading"><Loading /></el-icon>
+          <span>获取医疗数据</span>
+        </el-button>
       </div>
     </el-card>
-
-    <!-- 操作按钮 -->
-    <div class="action-buttons">
-      <el-button 
-        type="primary" 
-        @click="refreshData"
-        :loading="isLoading"
-      >
-        <el-icon v-if="isLoading"><Loading /></el-icon>
-        <span v-else>刷新数据</span>
-      </el-button>
-      <el-button 
-        type="default" 
-        @click="handleBack"
-      >
-        <el-icon><ArrowLeft /></el-icon> 返回选择
-      </el-button>
-    </div>
-
-    <!-- 错误提示 -->
-    <el-alert 
-      v-if="errorMessage" 
-      type="error" 
-      :message="errorMessage" 
-      show-icon 
-      closable
-      @close="errorMessage = ''"
-      style="margin: 16px 0;"
-    />
-
-    <!-- 加载状态 -->
-    <el-loading 
-      v-if="isLoading"
-      target=".result-content"
-      text="数据加载中..."
-    />
-
-    <!-- 结果内容区域 -->
-    <div class="result-content" v-if="!isLoading && !errorMessage">
-      <!-- 当没有数据时显示空状态 -->
-      <el-empty 
-        v-if="!auditStats" 
-        description="请点击刷新按钮获取数据"
-        class="empty-state"
-      />
-
-      <!-- 当有审计数据时显示 -->
-      <div v-if="auditStats">
-        <!-- 信任值展示 -->
-        <el-card class="trust-card" :class="trustValueClass">
-          <div class="trust-info">
-            <span class="trust-label">信任值：</span>
-            <span class="trust-value">{{ auditStats.Trustvalue.toFixed(2) }}</span>
-            <el-progress 
-              :percentage="auditStats.Trustvalue * 100" 
-              :stroke-color="trustValueColor"
-              stroke-width="6"
-              class="trust-progress"
-            />
-            <div class="trust-status">
-              {{ auditStats.Trustvalue > 0.5 ? '信任值达标，可查看病历数据' : '信任值未达标，无法查看病历数据' }}
-            </div>
-          </div>
-        </el-card>
-
-        <!-- 访问位置统计 -->
-        <el-card class="stats-card">
-          <div slot="header">访问位置统计</div>
-          <el-table :data="accessLocationData" border>
-            <el-table-column prop="name" label="类型" width="200" />
-            <el-table-column prop="value" label="数量" />
-          </el-table>
-        </el-card>
-
-        <!-- 访问时段统计 -->
-        <el-card class="stats-card">
-          <div slot="header">访问时段统计</div>
-          <el-table :data="accessPeriodData" border>
-            <el-table-column prop="name" label="类型" width="200" />
-            <el-table-column prop="value" label="数量" />
-          </el-table>
-        </el-card>
-
-        <!-- 访问成功统计 -->
-        <el-card class="stats-card">
-          <div slot="header">访问成功统计</div>
-          <el-table :data="accessSuccessData" border>
-            <el-table-column prop="name" label="类型" width="200" />
-            <el-table-column prop="value" label="数量" />
-          </el-table>
-        </el-card>
-
-        <!-- 数据敏感度统计 -->
-        <el-card class="stats-card">
-          <div slot="header">数据敏感度统计</div>
-          <el-table :data="dataSensitivityData" border>
-            <el-table-column prop="name" label="敏感度级别" width="200" />
-            <el-table-column prop="value" label="访问次数" />
-          </el-table>
-        </el-card>
-
-        <!-- 操作行为统计 -->
-        <el-card class="stats-card">
-          <div slot="header">操作行为统计</div>
-          <el-table :data="operationBehaviorData" border>
-            <el-table-column prop="name" label="操作类型" width="200" />
-            <el-table-column prop="value" label="次数" />
-          </el-table>
-        </el-card>
-
-        <!-- 用户ID展示 -->
-        <el-card class="stats-card">
-          <div slot="header">用户信息</div>
-          <div class="user-info">
-            <span class="user-label">用户ID：</span>
-            <span class="user-value">{{ auditStats.user_id }}</span>
-          </div>
-        </el-card>
-
-        <!-- 下一步按钮 -->
-        <div class="next-step-container">
-          <el-button 
-            type="success" 
-            size="large"
-            @click="fetchMedicalRecords"
-            :loading="medicalRecordsLoading"
-            :disabled="auditStats.Trustvalue <= 0.5"
-          >
-            <span>查看病历数据</span>
-            <el-icon><ArrowRight /></el-icon>
-          </el-button>
-          <p class="button-hint" v-if="auditStats.Trustvalue <= 0.5">
-            提示：信任值需大于0.5才能查看病历数据
-          </p>
-        </div>
-
-        <!-- 病历数据展示 -->
-        <el-card 
-          class="stats-card" 
-          v-if="medicalRecords && medicalRecords.data.length > 0"
-        >
-          <div slot="header">
-            病历数据 
-            <span class="record-count">(共 {{ medicalRecords.data_count }} 条，匹配 {{ medicalRecords.matched_medical_record_count }} 条)</span>
-          </div>
-          <el-table :data="medicalRecords.data" border>
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="medical_record_num" label="病历编号" width="120" />
-            <el-table-column prop="created_time" label="创建时间" width="180" />
-            <el-table-column prop="updated_time" label="更新时间" width="180" />
-            <el-table-column prop="data_code1" label="数据代码1" width="100" />
-            <el-table-column prop="data_code2" label="数据代码2" width="100" />
-            <el-table-column prop="data_code3" label="数据代码3" width="100" />
-            <el-table-column prop="data_code4" label="数据代码4" width="100" />
-            <el-table-column prop="data_code5" label="数据代码5" width="100" />
-            <el-table-column prop="data_code6" label="数据代码6" width="100" />
-            <el-table-column prop="data_code7" label="数据代码7" width="100" />
-            <el-table-column prop="data_code8" label="数据代码8" width="100" />
-            <el-table-column prop="data_code9" label="数据代码9" width="100" />
-          </el-table>
-        </el-card>
-
-        <!-- 病历数据加载状态 -->
-        <el-loading 
-          v-if="medicalRecordsLoading && auditStats.Trustvalue > 0.5"
-          target=".next-step-container"
-          text="加载病历数据中..."
-        />
-
-        <!-- 无病历数据提示 -->
-        <el-empty 
-          v-if="!medicalRecordsLoading && medicalRecords && medicalRecords.data.length === 0"
-          description="没有找到相关病历数据"
-          style="margin: 20px 0;"
-        />
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ArrowLeft, ArrowRight, Loading } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { getAuditStats, getMedicalRecords } from '@/api/researchers/researchers';
-import { AuditStats, MedicalRecordResponse } from '@/api/researchers/types';
+import { Loading } from '@element-plus/icons-vue';
+import { TrustValueResponse, QueryParams } from '@/api/researchers/types';
 
 // 路由实例
 const router = useRouter();
 const route = useRoute();
 
-// 选中的病种代码和标签
-const selectedCodes = ref<string[]>([]);
-const selectedLabels = ref('');
+// 解析路由参数
+const queryParams: QueryParams = JSON.parse(route.query.params as string);
+const trustData: TrustValueResponse = JSON.parse(route.query.trustData as string);
 
-// 数据状态
-const auditStats = ref<AuditStats | null>(null);
-const medicalRecords = ref<MedicalRecordResponse | null>(null);
-const isLoading = ref(false);
-const medicalRecordsLoading = ref(false);
-const errorMessage = ref('');
+// 状态管理
+const loading = ref(false);
+const activePanels = ref<string[]>(['location']);
+const dataCount = ref(10); // 默认数据量
 
-// 初始化
-onMounted(() => {
-  // 解析路由参数
-  const codes = route.query.codes as string;
-  const labels = route.query.labels as string;
-  
-  if (codes) {
-    selectedCodes.value = codes.split(',');
-  }
-  if (labels) {
-    selectedLabels.value = labels;
-  }
-  
-  // 如果有选中的代码，自动加载数据
-  if (selectedCodes.value.length > 0) {
-    refreshData();
-  }
+// 判断是否可以继续（信任值 > 敏感度）
+const canProceed = computed(() => {
+  return trustData.Trustvalue > trustData.sensitive;
 });
 
-// 刷新审计统计数据
-const refreshData = async () => {
-  if (selectedCodes.value.length === 0) {
-    errorMessage.value = '请先选择病种代码';
-    return;
-  }
+// 最大数据量限制
+const maxDataCount = computed(() => {
+  const score = trustData.Trustvalue;
+  if (score < 0.5) return 200;
+  if (score < 0.8) return 500;
+  return Infinity; // 不限制
+});
 
-  isLoading.value = true;
-  errorMessage.value = '';
-  medicalRecords.value = null; // 重置病历数据
+// 数据量提示信息
+const dataCountHint = computed(() => {
+  const score = trustData.Trustvalue;
+  if (score < 0.5) return '信任值<0.5，数据量限制：0-200条';
+  if (score < 0.8) return '信任值0.5-0.8，数据量限制：0-500条';
+  return '信任值>0.8，数据量无限制';
+});
 
-  try {
-    const response = await getAuditStats(selectedCodes.value);
-    
-    if (response.error) {
-      errorMessage.value = response.error;
-      ElMessage.error(response.error);
-    } else if (response.data) {
-      auditStats.value = response.data;
-      ElMessage.success('统计数据加载成功');
-    }
-  } catch (error) {
-    errorMessage.value = '加载统计数据失败';
-    console.error('加载统计数据错误:', error);
-  } finally {
-    isLoading.value = false;
+// 验证数据量是否有效
+const isDataCountValid = computed(() => {
+  return dataCount.value >= 0 && dataCount.value <= maxDataCount.value;
+});
+
+// 信任值样式类
+const scoreClass = ref<string>(
+  trustData.Trustvalue >= 0.8 ? 'high' : 
+  trustData.Trustvalue >= 0.5 ? 'medium' : 'low'
+);
+
+// 获取信任值描述
+const getScoreDescription = () => {
+  const score = trustData.Trustvalue;
+  const sensitive = trustData.sensitive;
+  
+  if (score > sensitive) {
+    if (score >= 0.8) return '信任值优秀，超过敏感度阈值，可访问所有级别的医疗数据';
+    if (score >= 0.5) return '信任值良好，超过敏感度阈值，可以访问医疗数据';
+    return '信任值较低但超过敏感度阈值，有限制地访问医疗数据';
+  } else {
+    return `信任值(${score.toFixed(2)})低于敏感度阈值(${sensitive.toFixed(2)})，无法访问医疗数据`;
   }
 };
 
-// 获取病历数据
-const fetchMedicalRecords = async () => {
-  if (!auditStats.value || auditStats.value.Trustvalue <= 0.5) {
-    ElMessage.error('信任值不足');
+// 获取医疗数据
+const handleGetMedicalData = async () => {
+  if (!canProceed.value) {
+    ElMessage.warning('信任值不足，无法获取医疗数据');
     return;
   }
-
-  medicalRecordsLoading.value = true;
+  
+  if (!isDataCountValid.value) {
+    ElMessage.warning(`数据量超出限制范围，请输入${dataCountHint.value}`);
+    return;
+  }
+  
+  loading.value = true;
   
   try {
-    const response = await getMedicalRecords(selectedCodes.value);
+    // 准备最终查询参数（添加数据量）
+    const finalParams = {
+      ...queryParams,
+      nums: dataCount.value,
+      Trustvalue: trustData.Trustvalue,
+      sensitive: trustData.sensitive,
+    };
     
-    if (response.error) {
-      ElMessage.error(`获取病历数据失败: ${response.error}`);
-    } else if (response.data) {
-      medicalRecords.value = response.data;
-      ElMessage.success(`成功加载 ${response.data.data_count} 条病历数据`);
-    }
-  } catch (error) {
-    console.error('获取病历数据失败:', error);
-    ElMessage.error('获取病历数据失败');
+    // 导航到医疗数据展示页面
+    router.push({
+      name: 'MedicaData',
+      query: {
+        params: JSON.stringify(finalParams)
+      }
+    });
+    
+  } catch (error: any) {
+    ElMessage.error(`获取数据失败: ${error.message}`);
   } finally {
-    medicalRecordsLoading.value = false;
+    loading.value = false;
   }
 };
 
-// 返回选择页面
+// 返回上一页
 const handleBack = () => {
-  router.push({ name: 'DiseaseSelection' });
+  router.back();
 };
-
-// 信任值样式计算
-const trustValueColor = computed(() => {
-  return auditStats.value?.Trustvalue > 0.5 ? '#52c41a' : '#faad14';
-});
-
-const trustValueClass = computed(() => {
-  return auditStats.value?.Trustvalue > 0.5 
-    ? 'trust-accepted' 
-    : 'trust-pending';
-});
-
-// 表格数据转换
-const accessLocationData = computed(() => {
-  if (!auditStats.value) return [];
-  return [
-    { name: '正常地点访问', value: auditStats.value.access_location.num_nd },
-    { name: '异常地点访问', value: auditStats.value.access_location.num_ad }
-  ];
-});
-
-const accessPeriodData = computed(() => {
-  if (!auditStats.value) return [];
-  return [
-    { name: '正常时段访问', value: auditStats.value.access_period.num_ni },
-    { name: '异常时段访问', value: auditStats.value.access_period.num_ui }
-  ];
-});
-
-const accessSuccessData = computed(() => {
-  if (!auditStats.value) return [];
-  return [
-    { name: '访问成功', value: auditStats.value.access_success.num_as },
-    { name: '访问失败', value: auditStats.value.access_success.num_af }
-  ];
-});
-
-const dataSensitivityData = computed(() => {
-  if (!auditStats.value) return [];
-  return [
-    { name: '级别1', value: auditStats.value.data_sensitivity.num1 },
-    { name: '级别2', value: auditStats.value.data_sensitivity.num2 },
-    { name: '级别3', value: auditStats.value.data_sensitivity.num3 },
-    { name: '级别4', value: auditStats.value.data_sensitivity.num4 }
-  ];
-});
-
-const operationBehaviorData = computed(() => {
-  if (!auditStats.value) return [];
-  const behavior = auditStats.value.operation_behavior;
-  return [
-    { name: '查看', value: behavior.num_view },
-    { name: '复制', value: behavior.num_copy },
-    { name: '下载', value: behavior.num_download },
-    { name: '添加', value: behavior.num_add },
-    { name: '修改', value: behavior.num_revise },
-    { name: '删除', value: behavior.num_delete }
-  ];
-});
 </script>
 
 <style scoped>
-.result-container {
+.trust-value-container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.trust-card {
+  margin-top: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+}
+
+.trust-overview {
   padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 16px;
-}
-
-/* 选择信息样式 */
-.selection-info {
-  margin-bottom: 20px;
   background-color: #f5f7fa;
+  border-radius: 6px;
+  margin-bottom: 20px;
 }
 
-.info-content {
-  padding: 12px 16px;
+.trust-score {
   display: flex;
   align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
-.info-label {
+.score-label {
+  font-size: 16px;
   font-weight: 500;
-  margin-right: 10px;
-  color: #666;
-}
-
-.info-value {
   color: #333;
-  flex: 1;
 }
 
-.action-buttons {
-  margin-bottom: 20px;
-}
-
-/* 信任值卡片样式 */
-.trust-card {
-  padding: 20px;
-  margin-bottom: 20px;
+.score-value {
+  font-size: 32px;
+  font-weight: bold;
+  padding: 4px 12px;
   border-radius: 4px;
 }
 
-.trust-accepted {
-  border: 1px solid #b7eb8f;
-  background-color: #f6ffed;
+.score-value.high {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
 }
 
-.trust-pending {
-  border: 1px solid #fff3cd;
-  background-color: #fffbe6;
+.score-value.medium {
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
 }
 
-.trust-info {
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
+.score-value.low {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
-.trust-label {
-  font-size: 16px;
-  color: #666;
-}
-
-.trust-value {
-  font-size: 28px;
-  font-weight: bold;
-  margin: 0 10px;
-}
-
-.trust-progress {
-  margin: 15px 0 10px 0;
-}
-
-.trust-status {
-  font-size: 14px;
-  color: #666;
-}
-
-/* 统计卡片样式 */
-.stats-card {
-  margin-bottom: 20px;
-  transition: all 0.3s;
-}
-
-.stats-card:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-}
-
-/* 用户信息样式 */
-.user-info {
-  padding: 10px 0;
-}
-
-.user-label {
-  font-weight: 500;
-  color: #666;
-  margin-right: 10px;
-}
-
-.user-value {
-  color: #333;
-}
-
-/* 下一步按钮样式 */
-.next-step-container {
-  text-align: center;
-  margin: 30px 0;
-}
-
-.button-hint {
-  margin: 10px 0 0 0;
-  color: #888;
-  font-size: 14px;
-}
-
-/* 病历数据样式 */
-.record-count {
-  font-size: 14px;
-  color: #666;
-  font-weight: normal;
+.trust-tag {
   margin-left: 10px;
 }
 
-.empty-state {
-  margin: 100px 0;
-  text-align: center;
+.sensitivity-info {
+  margin-bottom: 12px;
+  font-size: 14px;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .info-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .info-label {
-    margin-bottom: 5px;
-  }
-  
-  .trust-value {
-    font-size: 22px;
-  }
+.sensitivity-label {
+  color: #666;
+  margin-right: 8px;
+}
+
+.sensitivity-value {
+  font-weight: 500;
+  color: #165DFF;
+}
+
+.score-description {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.data-count-selector {
+  margin: 20px 0;
+}
+
+.trust-details {
+  margin-bottom: 20px;
+}
+
+.stat-value {
+  font-weight: 500;
+  color: #165DFF;
+}
+
+.trust-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 15px;
+  border-top: 1px solid #f0f0f0;
 }
 </style>
