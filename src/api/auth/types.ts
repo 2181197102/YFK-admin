@@ -1,4 +1,7 @@
 // src/api/auth/types.ts
+
+// ==================== 原有类型定义 ====================
+
 export interface LoginResponse {
     access_token: string;
     user: {
@@ -88,4 +91,48 @@ export interface VerifyAuthPasswordResponse {
     message: string;
     result: null;
     status: string;
+}
+
+// ==================== 验证码相关类型定义 ====================
+
+/**
+ * 生成登录验证码 - 请求参数
+ */
+export interface GenerateLoginCodeRequest {
+    account: string; // 身份证号或手机号
+}
+
+/**
+ * 生成登录验证码 - 响应数据
+ */
+export interface GenerateLoginCodeResponse {
+    code: number;
+    message: string;
+    result: {
+        phone?: string; // 如果输入的是身份证号，返回对应的手机号
+    };
+    status: string;
+}
+
+/**
+ * 验证登录验证码 - 请求参数
+ */
+export interface VerifyLoginCodeRequest {
+    phone: string;
+    code: string;
+}
+
+/**
+ * 生成身份验证验证码 - 请求参数
+ */
+export interface GenerateAuthCodeRequest {
+    phone: string;
+}
+
+/**
+ * 验证身份验证验证码 - 请求参数
+ */
+export interface VerifyAuthCodeRequest {
+    phone: string;
+    code: string;
 }

@@ -276,6 +276,16 @@ const routes = [
             },
             component: () => import('@/views/common/notifications/index.vue'),
           },
+          {
+            path: '/common/SmsAuthDialog',
+            name: 'SmsAuthDialog',
+            meta: {
+              title: '验证码模块',
+              requiresAuth: true,
+              roles: ['ADMIN', 'RESEARCHER', 'PATIENT', 'DOCTOR'],
+            },
+            component: () => import('@/views/common/SmsAuthDialog/index.vue'),
+          },
         ],
       },
     ],
