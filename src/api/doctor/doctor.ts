@@ -1,4 +1,4 @@
-// src/api/doctor.ts
+// src/api/doctor/doctor.ts
 import axios from 'axios';
 import { getToken } from '@/utils/auth';
 import { PatientQueryParams, PatientApiResponse, PatientDetailResponse } from './types';
@@ -87,6 +87,63 @@ export const getPatientAllRecords = async (
     // 统一错误处理
     if (axios.isAxiosError(error)) {
       throw new Error(`获取全病历失败：${error.response?.data?.msg || '网络异常'}`);
+    }
+    throw new Error(`请求异常：${(error as Error).message}`);
+  }
+};
+
+/**
+ * 生成查看其他机构病历的验证码（发送到患者手机）
+ * @param phone - 患者手机号
+ * @returns 验证码生成响应
+ */
+export const generateInstitutionAccessCode = async (
+  phone: string
+): Promise<{
+  code: number;
+  msg: string;
+}> => {
+  try {
+    const response = await request.post<{
+      code: number;
+      msg: string;
+    }>('/api/auth/sms/generate-auth-code', {
+      phone: phone
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(`生成验证码失败：${error.response?.data?.msg || '网络异常'}`);
+    }
+    throw new Error(`请求异常：${(error as Error).message}`);
+  }
+};
+
+/**
+ * 验证查看其他机构病历的验证码
+ * @param phone - 患者手机号
+ * @param code - 验证码
+ * @returns 验证响应
+ */
+export const verifyInstitutionAccessCode = async (
+  phone: string,
+  code: string
+): Promise<{
+  code: number;
+  msg: string;
+}> => {
+  try {
+    const response = await request.post<{
+      code: number;
+      msg: string;
+    }>('/api/auth/sms/verify-auth-code', {
+      phone: phone,
+      code: code
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(`验证失败：${error.response?.data?.msg || '网络异常'}`);
     }
     throw new Error(`请求异常：${(error as Error).message}`);
   }
