@@ -156,6 +156,33 @@
             {{ formatDateTime(scope.row.updated_time) }}
           </template>
         </el-table-column>
+        <el-table-column
+          label="操作"
+          align="center"
+          width="220"
+          fixed="right"
+        >
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              size="small"
+              @click="handleViewDetail(scope.row)"
+              :disabled="isProcessing"
+            >
+              查看详情
+            </el-button>
+            <el-button
+              type="success"
+              link
+              size="small"
+              @click="handleViewAllRecords(scope.row)"
+              :disabled="isProcessing"
+            >
+              查看全部病历
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
 
       <!-- 4. 分页控件（前端计算分页） -->
@@ -178,9 +205,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElAlert } from 'element-plus';
 import { getPatientMedicalRecords } from '@/api/doctor/doctor'; // 替换为你的API导入路径
-import type { PatientQueryParams, MedicalRecord, UserInfo, PatientApiResponse } from '@/api/doctor/types'; // 替换为你的类型导入路径
+import type { MedicalRecord, UserInfo, PatientApiResponse } from '@/api/doctor/types'; // 替换为你的类型导入路径
+
+// 路由实例
+const router = useRouter();
 
 // -------------------------- 1. 状态管理 --------------------------
 const globalLoading = ref<boolean>(true);
@@ -240,9 +271,11 @@ const initLoadData = async () => {
     globalLoading.value = true;
     console.log('开始请求后端数据：无输入参数'); // 调试：确认请求触发
 
-    // 关键修复：后端无需输入，不传任何参数（或传空对象，避免冗余参数干扰）
-    // 原代码传了pageNum/pageSize，可能导致后端无法识别，现在移除
-    const response: PatientApiResponse = await getPatientMedicalRecords({}); 
+    // 关键修复：后端无需输入，传入空的分页参数
+    const response: PatientApiResponse = await getPatientMedicalRecords({
+      pageNum: 1,
+      pageSize: 1000
+    }); 
     console.log('后端返回原始数据：', response); // 调试：查看后端实际返回结构
 
     // 验证后端返回格式（核心：确保code=200且有data字段）
@@ -250,8 +283,7 @@ const initLoadData = async () => {
       const { data } = response;
       
       // 1. 赋值病历数据（关键：确保medical_records键名与后端一致）
-      // 若后端返回的病历数组键名不是medical_records（如records），需修改为对应键名
-      allRawRecords.value = data.medical_records || data.records || []; 
+      allRawRecords.value = data.medical_records || []; 
       console.log('赋值后所有病历数据：', allRawRecords.value); // 调试：确认数据是否存入
 
       // 2. 赋值用户信息（同理：确保键名与后端一致）
@@ -320,6 +352,57 @@ const handlePageSizeChange = (size: number) => {
   if (isProcessing.value) return;
   pagination.pageSize = size;
   pagination.pageNum = 1;
+};
+
+// 查看详情
+const handleViewDetail = (row: MedicalRecord) => {
+  if (isProcessing.value) return;
+  
+  console.log('===== 点击查看详情 =====');
+  console.log('病历记录：', row);
+  console.log('病历号：', row.medical_record_num);
+  console.log('患者姓名：', row.patient_name);
+  console.log('身份证号：', row.patient_id_num);
+  
+  const targetPath = `/doctor/family-patients/detail/${row.medical_record_num}`;
+  console.log('目标路径：', targetPath);
+  
+  // 跳转到详情页，传递患者姓名、身份证号和病历号
+  router.push({
+    path: targetPath,
+    query: {
+      patientName: row.patient_name,
+      patientIdCard: row.patient_id_num // 保存身份证号用于页面显示
+    }
+  }).then(() => {
+    console.log('路由跳转成功');
+  }).catch((err) => {
+    console.error('路由跳转失败：', err);
+  });
+};
+
+// 查看全部病历
+const handleViewAllRecords = (row: MedicalRecord) => {
+  if (isProcessing.value) return;
+  
+  console.log('===== 点击查看全部病历 =====');
+  console.log('患者姓名：', row.patient_name);
+  console.log('身份证号：', row.patient_id_num);
+  
+  const targetPath = `/doctor/family-patients/all-records/${row.patient_id_num}`;
+  console.log('目标路径：', targetPath);
+  
+  // 跳转到全病历页面，传递患者姓名和身份证号
+  router.push({
+    path: targetPath,
+    query: {
+      patientName: row.patient_name
+    }
+  }).then(() => {
+    console.log('全病历页面跳转成功');
+  }).catch((err) => {
+    console.error('全病历页面跳转失败：', err);
+  });
 };
 
 // -------------------------- 6. 页面初始化 --------------------------

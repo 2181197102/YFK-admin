@@ -195,7 +195,7 @@ const routes = [
                 component: () => import('@/views/doctor/family-patients/PatientList.vue'),
               },
               {
-                path: '',
+                path: 'detail/:medicalRecordNum',
                 name: 'Patient_detail',
                 // 注意：不要加 title，否则菜单就会渲染它
                 meta: {
@@ -204,10 +204,23 @@ const routes = [
                 },
                 component: () => import('@/views/doctor/family-patients/PatientDetail.vue'),
                 props: route => ({
-                  institutions: route.query.institutions as string,
-                  diseases: route.query.diseases as string,
-                  institutionNames: route.query.institutionNames as string,
-                  diseaseNames: route.query.diseaseNames as string,
+                  medicalRecordNum: route.params.medicalRecordNum,
+                  patientName: route.query.patientName as string,
+                  patientIdCard: route.query.patientIdCard as string,
+                }),
+              },
+              {
+                path: 'all-records/:patientIdCard',
+                name: 'Patient_all_records',
+                // 注意：不要加 title，否则菜单就会渲染它
+                meta: {
+                  requiresAuth: true,
+                  roles: ['DOCTOR', 'ADMIN'],
+                },
+                component: () => import('@/views/doctor/family-patients/PatientAllRecords.vue'),
+                props: route => ({
+                  patientIdCard: route.params.patientIdCard,
+                  patientName: route.query.patientName as string,
                 }),
               },
               {

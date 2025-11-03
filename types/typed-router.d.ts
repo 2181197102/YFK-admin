@@ -29,6 +29,7 @@ declare module 'vue-router/auto-routes' {
     '/dashboard/': RouteRecordInfo<'/dashboard/', '/dashboard', Record<never, never>, Record<never, never>>,
     '/doctor/emergency/': RouteRecordInfo<'/doctor/emergency/', '/doctor/emergency', Record<never, never>, Record<never, never>>,
     '/doctor/family-patients/': RouteRecordInfo<'/doctor/family-patients/', '/doctor/family-patients', Record<never, never>, Record<never, never>>,
+    '/doctor/family-patients/PatientAllRecords': RouteRecordInfo<'/doctor/family-patients/PatientAllRecords', '/doctor/family-patients/PatientAllRecords', Record<never, never>, Record<never, never>>,
     '/doctor/family-patients/PatientDetail': RouteRecordInfo<'/doctor/family-patients/PatientDetail', '/doctor/family-patients/PatientDetail', Record<never, never>, Record<never, never>>,
     '/doctor/family-patients/PatientList': RouteRecordInfo<'/doctor/family-patients/PatientList', '/doctor/family-patients/PatientList', Record<never, never>, Record<never, never>>,
     '/doctor/family-patients/TrustValue': RouteRecordInfo<'/doctor/family-patients/TrustValue', '/doctor/family-patients/TrustValue', Record<never, never>, Record<never, never>>,
