@@ -163,15 +163,7 @@
           fixed="right"
         >
           <template #default="scope">
-            <el-button
-              type="primary"
-              link
-              size="small"
-              @click="handleViewDetail(scope.row)"
-              :disabled="isProcessing"
-            >
-              查看详情
-            </el-button>
+
             <el-button
               type="success"
               link
