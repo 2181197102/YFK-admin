@@ -1,7 +1,7 @@
 // src/api/doctor/doctor.ts
 import axios from 'axios';
 import { getToken } from '@/utils/auth';
-import { PatientQueryParams, PatientApiResponse, PatientDetailResponse } from './types';
+import { DiseaseDataResponse,MedicalRecordForm, PatientQueryParams, PatientApiResponse, PatientDetailResponse } from './types';
 
 const token = getToken();
 
@@ -147,4 +147,21 @@ export const verifyInstitutionAccessCode = async (
     }
     throw new Error(`请求异常：${(error as Error).message}`);
   }
+};
+
+export const fetchDiseaseDataCodes = async (): Promise<DiseaseDataResponse> => {
+  const response = await request.get<DiseaseDataResponse>("/api/medical_record/disease-data-codes");
+  if (response.data.status !== "success") {
+    throw new Error(response.data.message || "获取疾病数据失败");
+  }
+  return response.data;
+};
+
+/**
+ * 提交病历记录
+ * @param form 病历表单数据
+ */
+export const submitMedicalRecord = async (form: MedicalRecordForm) => {
+  const response = await request.post("/api/medical_record/add_record", form);
+  return response.data;
 };

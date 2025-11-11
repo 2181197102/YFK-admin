@@ -229,3 +229,39 @@ export interface PatientAllRecordsResponse {
     institution_records: InstitutionAllRecords[]; // 各机构的病历集合
   };
 }
+
+
+/** 疾病数据项类型 */
+export interface DiseaseDataItem {
+  id: number;
+  disease_code: string;
+  data_code: string;
+  remark: string;
+  data_type: 0 | 1; // 0-文本型 1-数值型
+  sensitive: string;
+  similar: string;
+  security_category: string;
+  security_level: number;
+}
+
+/** 疾病数据响应类型 */
+export interface DiseaseDataResponse {
+  status: "success" | "error";
+  message: string;
+  data: Record<string, DiseaseDataItem[]>; // key: disease_code, value: 对应data_code列表
+}
+
+/** 病历提交表单类型 */
+export interface MedicalRecordForm {
+  // 固定必填字段
+  user_id: number;
+  name: string;
+  age: number;
+  gender: "男" | "女" | "其他";
+  id_card: string;
+  phone: string;
+  doctor_name: string;
+  disease_code: string; // 选中的疾病编码
+  // 动态字段（根据disease_code对应的data_code生成）
+  [key: string]: any; // 兼容动态data_code字段
+}
