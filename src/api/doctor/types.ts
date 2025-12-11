@@ -250,18 +250,177 @@ export interface DiseaseDataResponse {
   message: string;
   data: Record<string, DiseaseDataItem[]>; // key: disease_code, value: 对应data_code列表
 }
-
-/** 病历提交表单类型 */
+/**
+ * 医疗记录表单提交的数据类型
+ * 诊断编码改为数组（多选），其他字段保持分类
+ */
 export interface MedicalRecordForm {
-  // 固定必填字段
   user_id: number;
   name: string;
   age: number;
-  gender: "男" | "女" | "其他";
+  gender: string;
   id_card: string;
   phone: string;
   doctor_name: string;
-  disease_code: string; // 选中的疾病编码
-  // 动态字段（根据disease_code对应的data_code生成）
-  [key: string]: any; // 兼容动态data_code字段
+  
+  // 诊断编码改为多选数组（从E10/I10/I25.1/J44中选择）
+  diagnosis_name_code: string;
+  
+  // 既往史和用药史（多选+其他输入）
+  past_history: string[];
+  past_history_other?: string; // 既往史其他内容
+  family_history?: string;
+  medication_history: string[];
+  medication_history_other?: string; // 用药史其他内容
+  
+  
+  // 血压血糖相关
+  sitting_standing_blood_pressure?: string;
+  ambulatory_blood_pressure_24h?: string;
+  hypertension_history?: string;
+  fasting_blood_glucose?: string;
+  postprandial_blood_glucose?: string;
+  hba1c?: string;
+  insulin?: string;
+  c_peptide?: string;
+  hypoglycemia_code?: string;
+  
+  // 血脂血尿酸相关
+  total_cholesterol?: string;
+  triglyceride?: string;
+  hdl_cholesterol?: string;
+  ldl_cholesterol?: string;
+  blood_uric_acid?: string;
+  serum_creatinine?: string;
+  urine_microalbumin_creatinine_ratio?: string;
+  
+  // 心血管检查相关
+  troponin?: string;
+  left_ventricular_ejection_fraction?: string;
+  arterial_stiffness?: string;
+  lower_limb_vascular_ultrasound?: string;
+  abdominal_ultrasound?: string;
+  fundus_examination?: string;
+  
+  // 肺功能检查相关
+  fev1?: string;
+  fev1_fvc_ratio?: string;
+  pef?: string;
+  frc?: string;
+  tlc?: string;
+  dlco?: string;
+  dlco_va_ratio?: string;
+  spo2?: string;
+  mmrc_score?: string;
+  cat_score?: string;
+  
+  // 生活习惯相关
+  smoking_history?: string;
+  smoking_start_age?: number;
+  smoking_quit_age?: number;
+  drinking_history?: string;
+  exercise_method?: string;
+  exercise_duration?: number;
+  daily_staple_food?: number;
+  
+  // 诊疗方案相关
+  drug_name?: string;
+  planned_operation_code?: string;
+  transfusion_method?: string;
+  lifestyle_guidance?: string;
+  medication_guidance?: string;
+  cost?: number;
+  
+  // 其他基础项
+  blood_type?: string;
+  heart_rate?: string;
+  bmi?: string;
+}
+
+// 其他类型定义保持不变
+export interface DiseaseItem {
+  data_code: string;
+  data_type: number;
+  disease_code: string;
+  id: number;
+  remark: string;
+  security_category: string;
+  security_level: number;
+  sensitive: string;
+  similar: string;
+}
+export type DiseaseMap = Record<string, DiseaseItem[]>;
+export interface DiseaseCodeRes {
+  data: DiseaseMap;
+  message: string;
+  status: string;
+}
+
+/** 健康数据单条记录类型（必须和接口返回字段完全一致） */
+export interface HealthRecordItem {
+  record_id: number; // 接口返回的record_id
+  created_time: string; // 接口返回的created_time
+  // 所有心率字段（0-22时，每2小时一个）
+  hr_0: number;
+  hr_2: number;
+  hr_4: number;
+  hr_6: number;
+  hr_8: number;
+  hr_10: number;
+  hr_12: number;
+  hr_14: number;
+  hr_16: number;
+  hr_18: number;
+  hr_20: number;
+  hr_22: number;
+  // 所有收缩压字段
+  sys_0: number;
+  sys_2: number;
+  sys_4: number;
+  sys_6: number;
+  sys_8: number;
+  sys_10: number;
+  sys_12: number;
+  sys_14: number;
+  sys_16: number;
+  sys_18: number;
+  sys_20: number;
+  sys_22: number;
+  // 所有舒张压字段
+  dia_0: number;
+  dia_2: number;
+  dia_4: number;
+  dia_6: number;
+  dia_8: number;
+  dia_10: number;
+  dia_12: number;
+  dia_14: number;
+  dia_16: number;
+  dia_18: number;
+  dia_20: number;
+  dia_22: number;
+
+  spo2_0: number;
+  spo2_2: number;
+  spo2_4: number;
+  spo2_6: number;
+  spo2_8: number;
+  spo2_10: number;
+  spo2_12: number;
+  spo2_14: number;
+  spo2_16: number;
+  spo2_18: number;
+  spo2_20: number;
+  spo2_22: number;
+}
+
+/** 健康数据响应类型 */
+export interface HealthRecordResponse {
+  code: number;
+  message: string;
+  data: {
+    id_card: number | string; // 兼容数字/字符串类型
+    record_count: number;
+    records: HealthRecordItem[]; // 对应上面的类型
+  };
 }

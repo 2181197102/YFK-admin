@@ -1,7 +1,7 @@
 // src/api/doctor/doctor.ts
 import axios from 'axios';
 import { getToken } from '@/utils/auth';
-import { DiseaseDataResponse,MedicalRecordForm, PatientQueryParams, PatientApiResponse, PatientDetailResponse } from './types';
+import { HealthRecordResponse,DiseaseCodeRes,MedicalRecordForm, PatientQueryParams, PatientApiResponse, PatientDetailResponse } from './types';
 
 const token = getToken();
 
@@ -149,19 +149,24 @@ export const verifyInstitutionAccessCode = async (
   }
 };
 
-export const fetchDiseaseDataCodes = async (): Promise<DiseaseDataResponse> => {
-  const response = await request.get<DiseaseDataResponse>("/api/medical_record/disease-data-codes");
-  if (response.data.status !== "success") {
-    throw new Error(response.data.message || "获取疾病数据失败");
-  }
-  return response.data;
+export const getDiseaseCodes = async (): Promise<DiseaseCodeRes> => {
+  const { data } = await request.get<DiseaseCodeRes>('http://127.0.0.1:7878/api/medical_record/disease-data-codes');
+  return data;
 };
 
 /**
  * 提交病历记录
  * @param form 病历表单数据
  */
-export const submitMedicalRecord = async (form: MedicalRecordForm) => {
-  const response = await request.post("/api/medical_record/add_record", form);
-  return response.data;
+export const addMedicalRecord = async (form: MedicalRecordForm): Promise<void> => {
+  await request.post('http://127.0.0.1:7878/api/medical_record/add_record', form);
+};
+
+
+export const getHealthRecordsByCard = (data: { id_card: string }): Promise<HealthRecordResponse> => {
+  return request({
+    url: '/api/emergency/emergency_rate',
+    method: 'POST',
+    data
+  });
 };

@@ -128,7 +128,7 @@
                   </span>
                 </div>
               </div>
-
+              
               <!-- 病历核心数据展示 -->
               <el-divider style="margin: 16px 0" />
               <el-tabs type="border-card">
@@ -138,7 +138,7 @@
                     <el-descriptions-item label="患者姓名">
                       {{ record.patient_basic_info.name }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="年龄">
+                    <el-descriptions-item label="年龄（岁）">
                       {{ record.patient_basic_info.age }}
                     </el-descriptions-item>
                     <el-descriptions-item label="性别">
@@ -153,13 +153,13 @@
                     <el-descriptions-item label="血型">
                       {{ record.patient_record_data.blood_type || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="BMI">
+                    <el-descriptions-item label="BMI（kg/m²）">
                       {{ record.patient_record_data.bmi || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="腰围">
+                    <el-descriptions-item label="腰围（cm）">
                       {{ record.patient_record_data.waist_circumference || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="心率">
+                    <el-descriptions-item label="心率（次/分）">
                       {{ record.patient_record_data.heart_rate || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>
@@ -174,19 +174,19 @@
                     <el-descriptions-item label="诊断名称编码">
                       {{ record.patient_record_data.diagnosis_name_code || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="既往史" :span="2">
+                    <el-descriptions-item label="既往史">
                       {{ record.patient_record_data.past_history || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="家族史" :span="2">
+                    <el-descriptions-item label="家族史">
                       {{ record.patient_record_data.family_history || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="用药史" :span="2">
+                    <el-descriptions-item label="用药史">
                       {{ record.patient_record_data.medication_history || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="职业粉尘暴露" :span="2">
+                    <el-descriptions-item label="职业粉尘暴露">
                       {{ record.patient_record_data.occupational_dust_exposure || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="环境危险因素" :span="2">
+                    <el-descriptions-item label="环境危险因素">
                       {{ record.patient_record_data.environmental_risk_factors || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>
@@ -195,28 +195,28 @@
                 <!-- 血压血糖 -->
                 <el-tab-pane label="血压血糖">
                   <el-descriptions :column="3" border size="small">
-                    <el-descriptions-item label="坐立血压">
+                    <el-descriptions-item label="坐立血压（mmHg）">
                       {{ record.patient_record_data.sitting_standing_blood_pressure || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="24h动态血压">
+                    <el-descriptions-item label="24h动态血压（mmHg）">
                       {{ record.patient_record_data.ambulatory_blood_pressure_24h || '-' }}
                     </el-descriptions-item>
                     <el-descriptions-item label="高血压史">
                       {{ record.patient_record_data.hypertension_history || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="空腹血糖">
+                    <el-descriptions-item label="空腹血糖（mmol/L）">
                       {{ record.patient_record_data.fasting_blood_glucose || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="餐后血糖">
+                    <el-descriptions-item label="餐后血糖（mmol/L）">
                       {{ record.patient_record_data.postprandial_blood_glucose || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="糖化血红蛋白">
+                    <el-descriptions-item label="糖化血红蛋白（%）">
                       {{ record.patient_record_data.hba1c || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="胰岛素">
+                    <el-descriptions-item label="胰岛素（mU/L）">
                       {{ record.patient_record_data.insulin || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="C肽">
+                    <el-descriptions-item label="C肽（ng/mL）">
                       {{ record.patient_record_data.c_peptide || '-' }}
                     </el-descriptions-item>
                     <el-descriptions-item label="低血糖编码">
@@ -228,25 +228,25 @@
                 <!-- 血脂血尿酸 -->
                 <el-tab-pane label="血脂血尿酸">
                   <el-descriptions :column="3" border size="small">
-                    <el-descriptions-item label="总胆固醇">
+                    <el-descriptions-item label="总胆固醇（mmol/L）">
                       {{ record.patient_record_data.total_cholesterol || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="甘油三酯">
+                    <el-descriptions-item label="甘油三酯（mmol/L）">
                       {{ record.patient_record_data.triglyceride || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="高密度脂蛋白">
+                    <el-descriptions-item label="高密度脂蛋白（mmol/L）">
                       {{ record.patient_record_data.hdl_cholesterol || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="低密度脂蛋白">
+                    <el-descriptions-item label="低密度脂蛋白（mmol/L）">
                       {{ record.patient_record_data.ldl_cholesterol || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="血尿酸">
+                    <el-descriptions-item label="血尿酸（μmol/L）">
                       {{ record.patient_record_data.blood_uric_acid || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="血清肌酐">
+                    <el-descriptions-item label="血清肌酐（μmol/L）">
                       {{ record.patient_record_data.serum_creatinine || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="尿微量白蛋白肌酐比" :span="3">
+                    <el-descriptions-item label="尿微量白蛋白肌酐比（mg/g）">
                       {{ record.patient_record_data.urine_microalbumin_creatinine_ratio || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>
@@ -255,22 +255,22 @@
                 <!-- 心血管检查 -->
                 <el-tab-pane label="心血管检查">
                   <el-descriptions :column="3" border size="small">
-                    <el-descriptions-item label="肌钙蛋白">
+                    <el-descriptions-item label="肌钙蛋白（ng/mL）">
                       {{ record.patient_record_data.troponin || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="左心室射血分数">
+                    <el-descriptions-item label="左心室射血分数（%）">
                       {{ record.patient_record_data.left_ventricular_ejection_fraction || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="动脉僵硬度">
+                    <el-descriptions-item label="动脉僵硬度（m/s）">
                       {{ record.patient_record_data.arterial_stiffness || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="下肢血管超声" :span="3">
+                    <el-descriptions-item label="下肢血管超声">
                       {{ record.patient_record_data.lower_limb_vascular_ultrasound || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="腹部超声" :span="3">
+                    <el-descriptions-item label="腹部超声">
                       {{ record.patient_record_data.abdominal_ultrasound || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="眼底检查" :span="3">
+                    <el-descriptions-item label="眼底检查">
                       {{ record.patient_record_data.fundus_examination || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>
@@ -279,34 +279,34 @@
                 <!-- 肺功能检查 -->
                 <el-tab-pane label="肺功能检查">
                   <el-descriptions :column="3" border size="small">
-                    <el-descriptions-item label="FEV1">
+                    <el-descriptions-item label="FEV1（L）">
                       {{ record.patient_record_data.fev1 || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="FEV1/FVC比值">
+                    <el-descriptions-item label="FEV1/FVC比值（%）">
                       {{ record.patient_record_data.fev1_fvc_ratio || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="呼气峰流速">
+                    <el-descriptions-item label="呼气峰流速（L/s）">
                       {{ record.patient_record_data.pef || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="功能残气量">
+                    <el-descriptions-item label="功能残气量（L）">
                       {{ record.patient_record_data.frc || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="肺总量">
+                    <el-descriptions-item label="肺总量（L）">
                       {{ record.patient_record_data.tlc || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="弥散量">
+                    <el-descriptions-item label="弥散量（mmol/min/kPa）">
                       {{ record.patient_record_data.dlco || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="DLCO/VA比值">
+                    <el-descriptions-item label="DLCO/VA比值（mmol/min/kPa/L）">
                       {{ record.patient_record_data.dlco_va_ratio || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="血氧饱和度">
+                    <el-descriptions-item label="血氧饱和度（%）">
                       {{ record.patient_record_data.spo2 || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="mMRC评分">
+                    <el-descriptions-item label="mMRC评分（级）">
                       {{ record.patient_record_data.mmrc_score || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="CAT评分" :span="3">
+                    <el-descriptions-item label="CAT评分（分）">
                       {{ record.patient_record_data.cat_score || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>
@@ -318,10 +318,10 @@
                     <el-descriptions-item label="吸烟史">
                       {{ record.patient_record_data.smoking_history || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="开始吸烟年龄">
+                    <el-descriptions-item label="开始吸烟年龄（岁）">
                       {{ record.patient_record_data.smoking_start_age || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="戒烟年龄">
+                    <el-descriptions-item label="戒烟年龄（岁）">
                       {{ record.patient_record_data.smoking_quit_age || '-' }}
                     </el-descriptions-item>
                     <el-descriptions-item label="饮酒史">
@@ -330,10 +330,10 @@
                     <el-descriptions-item label="运动方式">
                       {{ record.patient_record_data.exercise_method || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="运动时长(分钟)">
+                    <el-descriptions-item label="运动时长（分钟）">
                       {{ record.patient_record_data.exercise_duration || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="每日主食(克)" :span="3">
+                    <el-descriptions-item label="每日主食（克）">
                       {{ record.patient_record_data.daily_staple_food || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>
@@ -342,22 +342,22 @@
                 <!-- 诊疗方案 -->
                 <el-tab-pane label="诊疗方案">
                   <el-descriptions :column="2" border size="small">
-                    <el-descriptions-item label="药物名称" :span="2">
+                    <el-descriptions-item label="药物名称">
                       {{ record.patient_record_data.drug_name || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="计划手术编码" :span="2">
+                    <el-descriptions-item label="计划手术编码">
                       {{ record.patient_record_data.planned_operation_code || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="输血方法" :span="2">
+                    <el-descriptions-item label="输血方法">
                       {{ record.patient_record_data.transfusion_method || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="生活方式指导" :span="2">
+                    <el-descriptions-item label="生活方式指导">
                       {{ record.patient_record_data.lifestyle_guidance || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="用药指导" :span="2">
+                    <el-descriptions-item label="用药指导">
                       {{ record.patient_record_data.medication_guidance || '-' }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="费用(元)" :span="2">
+                    <el-descriptions-item label="费用（元）">
                       {{ record.patient_record_data.cost || '-' }}
                     </el-descriptions-item>
                   </el-descriptions>

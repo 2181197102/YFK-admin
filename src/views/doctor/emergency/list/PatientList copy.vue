@@ -39,7 +39,7 @@
       <!-- 健康数据折线图（验证通过后显示，与病历同屏） -->
       <el-card class="chart-card" shadow="hover" style="margin-bottom: 20px">
         <template #header>
-          <span class="card-title">24小时健康数据趋势图</span>
+          <span class="card-title">24小时心率/血压趋势图</span>
         </template>
         <div class="chart-container">
           <el-loading v-if="chartLoading" text="加载图表数据中...">
@@ -429,25 +429,19 @@ const handleChartData = (records: HealthRecordItem[]) => {
   const timePoints = ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18', '20', '22'];
   
   // 生成图表所需的数组格式（time + 对应指标值）
-  const formattedData = timePoints.map(hour => {
-    // 处理血氧数据，如果为0则显示为null，避免显示
-    const spo2Value = record[`spo2_${hour}`] || 0;
-    return {
-      time: `${hour}:00`,
-      hr: record[`hr_${hour}`] || 0,
-      sys: record[`sys_${hour}`] || 0,
-      dia: record[`dia_${hour}`] || 0,
-      spo2: spo2Value > 0 ? spo2Value : null // 空值设为null
-    };
-  });
-  
+  const formattedData = timePoints.map(hour => ({
+    time: `${hour}:00`,
+    hr: record[`hr_${hour}`] || 0,
+    sys: record[`sys_${hour}`] || 0,
+    dia: record[`dia_${hour}`] || 0,
+  }));
   console.log("handleChartData生成的数组：", formattedData);
   return formattedData;
 };
 
 // 初始化图表
 const initChart = (data: any[]) => {
-  if (!chartRef.value) {
+   if (!chartRef.value) {
     console.error("图表容器不存在！");
     ElMessage.error("图表容器加载失败");
     return;
@@ -456,69 +450,32 @@ const initChart = (data: any[]) => {
     console.error("图表数据为空！");
     return;
   }
-  
   // 销毁现有实例避免重复渲染
   if (chartInstance.value) {
     chartInstance.value.dispose();
   }
-  
   // 创建新图表实例
   chartInstance.value = echarts.init(chartRef.value);
-  
-  // 提取数据
-  const xAxisData = data.map(item => item.time);
-  const hrData = data.map(item => item.hr);
-  const sysData = data.map(item => item.sys);
-  const diaData = data.map(item => item.dia);
-  const spo2Data = data.map(item => item.spo2);
-  
   const option = {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(255,255,255,0.9)',
-      borderColor: '#ddd',
-      borderWidth: 1,
-      textStyle: { color: '#333' },
-      formatter: (params: any[]) => {
-        let tooltipHtml = `<strong>${params[0].axisValue}</strong><br/>`;
-        params.forEach((param) => {
-          if (param.value !== 0 && param.value !== null) {
-            const unit = param.seriesName.includes('血氧') ? '%' : 
-                         param.seriesName.includes('心率') ? 'bpm' : 'mmHg';
-            tooltipHtml += `${param.marker} ${param.seriesName}: ${param.value}${unit}<br/>`;
-          }
-        });
-        return tooltipHtml;
-      },
-      axisPointer: {
-        type: 'shadow',
-        label: {
-          backgroundColor: '#666'
-        }
-      }
+      formatter: '{b}<br/>{a}: {c}',
+      axisPointer: { type: 'shadow' }
     },
     legend: {
-      data: ['心率(hr)', '收缩压(sys)', '舒张压(dia)', '血氧饱和度(spo2)'],
-      top: 0,
-      textStyle: { fontSize: 12 }
+      data: ['心率(hr)', '收缩压(sys)', '舒张压(dia)'],
+      top: 0
     },
     grid: {
-      left: '5%',
-      right: '8%',
-      bottom: '8%',
-      top: '10%',
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
       containLabel: true
     },
     xAxis: {
       type: 'category',
-      data: xAxisData,
-      axisLabel: { 
-        interval: 0,
-        fontSize: 11
-      },
-      axisLine: {
-        lineStyle: { color: '#e0e0e0' }
-      }
+      data: data.map(item => item.time),
+      axisLabel: { interval: 0 }
     },
     yAxis: [
       {
@@ -528,12 +485,7 @@ const initChart = (data: any[]) => {
         max: 120,
         position: 'left',
         axisLine: { lineStyle: { color: '#4895ef' } },
-        axisLabel: {
-          formatter: '{value}',
-          color: '#4895ef'
-        },
-        nameTextStyle: { color: '#4895ef' },
-        splitLine: { show: false }
+        nameTextStyle: { color: '#4895ef' }
       },
       {
         type: 'value',
@@ -541,27 +493,8 @@ const initChart = (data: any[]) => {
         min: 50,
         max: 160,
         position: 'right',
-        offset: 60,
         axisLine: { lineStyle: { color: '#f72585' } },
-        axisLabel: {
-          formatter: '{value}',
-          color: '#f72585'
-        },
         nameTextStyle: { color: '#f72585' },
-        splitLine: { show: false }
-      },
-      {
-        type: 'value',
-        name: '血氧(%)',
-        min: 85,
-        max: 100,
-        position: 'right',
-        axisLine: { lineStyle: { color: '#7c3aed' } }, // 修改血氧轴颜色为紫色
-        axisLabel: {
-          formatter: '{value}',
-          color: '#7c3aed'
-        },
-        nameTextStyle: { color: '#7c3aed' },
         splitLine: { show: false }
       }
     ],
@@ -569,97 +502,37 @@ const initChart = (data: any[]) => {
       {
         name: '心率(hr)',
         type: 'line',
-        data: hrData,
+        data: data.map(item => item.hr),
         smooth: true,
-        lineStyle: { width: 2, color: '#4895ef' },
+        lineStyle: { width: 3, color: '#4895ef' },
         itemStyle: { color: '#4895ef' },
-        symbol: 'circle',
-        symbolSize: 6,
         yAxisIndex: 0
       },
       {
         name: '收缩压(sys)',
         type: 'line',
-        data: sysData,
+        data: data.map(item => item.sys),
         smooth: true,
-        lineStyle: { width: 2, color: '#f72585' },
+        lineStyle: { width: 3, color: '#f72585' },
         itemStyle: { color: '#f72585' },
-        symbol: 'circle',
-        symbolSize: 6,
         yAxisIndex: 1
       },
       {
         name: '舒张压(dia)',
         type: 'line',
-        data: diaData,
+        data: data.map(item => item.dia),
         smooth: true,
-        lineStyle: { width: 2, color: '#4cc9f0' },
+        lineStyle: { width: 3, color: '#4cc9f0' },
         itemStyle: { color: '#4cc9f0' },
-        symbol: 'circle',
-        symbolSize: 6,
         yAxisIndex: 1
-      },
-      {
-        name: '血氧饱和度(spo2)',
-        type: 'bar',
-        data: spo2Data,
-        yAxisIndex: 2,
-        itemStyle: {
-          color: (params: any) => {
-            const value = params.value;
-            if (value === null || value === 0) {
-              return 'transparent'; // 空值透明
-            }
-            // 修改颜色：异常值用紫色系，正常值用蓝色系
-            return value < 95 ? '#be185d' : '#3b82f6'; // 深粉色/蓝色
-            // 其他颜色方案可选：
-            // return value < 95 ? '#e63946' : '#457b9d'; // 红色/深蓝色
-            // return value < 95 ? '#f97316' : '#10b981'; // 橙色/绿色
-            // return value < 95 ? '#7c3aed' : '#06b6d4'; // 紫色/青色
-          },
-          borderRadius: [4, 4, 0, 0],
-          borderWidth: 1,
-          borderColor: (params: any) => {
-            const value = params.value;
-            if (value === null || value === 0) {
-              return 'transparent';
-            }
-            return value < 95 ? '#9d174d' : '#2563eb'; // 对应边框颜色
-          }
-        },
-        barWidth: '50%',
-        label: {
-          show: true,
-          position: 'top',
-          formatter: (params: any) => {
-            return params.value && params.value > 0 ? `${params.value}%` : '';
-          },
-          fontSize: 10,
-          color: '#333',
-          fontWeight: 'bold'
-        },
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0,0,0,0.2)'
-          }
-        }
       }
     ]
   };
-  
   chartInstance.value.setOption(option);
-  
   // 监听窗口 resize 适配
-  const resizeHandler = () => {
+  window.addEventListener('resize', () => {
     chartInstance.value?.resize();
-  };
-  
-  window.addEventListener('resize', resizeHandler);
-  
-  // 保存resize handler以便在组件卸载时移除
-  (chartInstance.value as any).resizeHandler = resizeHandler;
+  });
 };
 
 // 获取健康数据（验证通过后调用）
@@ -678,10 +551,11 @@ const fetchHealthData = async (idCard: string) => {
       console.log("=== 接口请求成功，原始返回数据：===");
       console.log("完整response：", response);
       console.log("response.code：", response.code);
-      console.log("response.data 是否存在：", !!response.data);
-      console.log("response.data 类型：", typeof response.data);
+      console.log("response.data 是否存在：", !!response.data); // 关键日志1：检查data是否存在
+      console.log("response.data 类型：", typeof response.data); // 关键日志2：检查data类型
     } catch (requestError) {
       console.error("=== 接口请求失败：===", requestError);
+      // ElMessage.error(`接口请求失败：${(requestError as Error).message}`);
       chartLoading.value = false;
       return;
     }
@@ -694,35 +568,52 @@ const fetchHealthData = async (idCard: string) => {
       return;
     }
 
-    // 检查数据结构
-    let records = [];
-    if (response.data && response.data.data && response.data.data.records) {
-      records = response.data.data.records;
-    } else if (response.data && response.data.records) {
-      records = response.data.records;
-    } else if (response.records) {
-      records = response.records;
-    }
-    
-    console.log("提取的records数据：", records);
-    
-    if (Array.isArray(records) && records.length > 0) {
-      chartData.value = records as HealthRecordItem[];
-      const formattedData = handleChartData(chartData.value);
-      console.log("格式化后的图表数据：", formattedData);
+    // 宽松判断code
+    if (response.data.code === 200 || response.data.code === "200") {
+      console.log("=== 进入code=200分支 ===");
       
-      // 确保DOM渲染完成后初始化图表
-      setTimeout(() => {
-        initChart(formattedData);
-        console.log("图表初始化成功");
-      }, 100);
+      // 关键修复：先判断response.data存在且是对象，再判断records是数组
+      if (typeof response.data === "object" && response.data !== null) {
+        console.log("response.data 存在，继续检查records：");
+        console.log("response.data.records：", response.data.records);
+        console.log("response.data.records 类型：", typeof response.data.records);
+        console.log("response.data.records 是数组吗？", Array.isArray(response.data.records));
+
+        if (Array.isArray(response.data.data.records)) {
+          // 成功进入目标分支
+          console.log("=== 进入records数组分支，开始处理图表 ===");
+          chartData.value = response.data.data.records as HealthRecordItem[];
+          const formattedData = handleChartData(chartData.value);
+          console.log("格式化后的图表数据：", formattedData);
+
+          try {
+            initChart(formattedData);
+            console.log("图表初始化成功");
+          } catch (chartError) {
+            console.error("图表初始化失败：", chartError);
+            ElMessage.error("图表加载失败，请刷新页面重试");
+          }
+        } else {
+          console.error("=== response.data.records不是数组 ===");
+          console.log("实际records值：", response.data.records);
+          chartData.value = [];
+          ElMessage.warning("健康数据格式异常，无法展示图表");
+        }
+      } else {
+        // 新增分支：data不存在或不是对象
+        console.error("=== response.data不存在或不是对象 ===");
+        console.log("实际response.data：", response.data);
+        chartData.value = [];
+        ElMessage.warning("接口返回数据缺失，无法展示图表");
+      }
     } else {
-      console.error("=== records不是有效数组 ===");
+      console.error("=== code不是200 ===");
+      // ElMessage.warning(`获取健康数据失败：${response.message || "未知错误"}`);
       chartData.value = [];
-      ElMessage.warning("健康数据格式异常，无法展示图表");
     }
   } catch (error) {
     console.error("=== 全局错误：===", error);
+    // ElMessage.error("加载健康数据时发生未知错误");
     chartData.value = [];
   } finally {
     chartLoading.value = false;
@@ -826,10 +717,6 @@ const handleBack = () => {
   isQueryDone.value = false;
   // 销毁图表释放资源
   if (chartInstance.value) {
-    const resizeHandler = (chartInstance.value as any).resizeHandler;
-    if (resizeHandler) {
-      window.removeEventListener('resize', resizeHandler);
-    }
     chartInstance.value.dispose();
     chartInstance.value = null;
   }
@@ -839,10 +726,6 @@ const handleBack = () => {
 // 页面卸载时销毁图表
 onUnmounted(() => {
   if (chartInstance.value) {
-    const resizeHandler = (chartInstance.value as any).resizeHandler;
-    if (resizeHandler) {
-      window.removeEventListener('resize', resizeHandler);
-    }
     chartInstance.value.dispose();
     chartInstance.value = null;
   }
@@ -890,7 +773,7 @@ onUpdated(() => {
   }
   .chart-container {
     width: 100%;
-    height: 500px; // 增加图表高度
+    height: 400px;
     position: relative;
   }
   .chart-dom {
@@ -1046,19 +929,6 @@ onUpdated(() => {
   font-size: 16px;
 }
 
-// 图表样式优化
-:deep(.echarts-bar) {
-  transition: all 0.3s ease;
-}
-
-:deep(.echarts-tooltip) {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-:deep(.echarts-legend-item) {
-  cursor: pointer;
-}
-
 @media (max-width: 1200px) {
   .patient-all-records-page {
     padding: 16px;
@@ -1076,7 +946,7 @@ onUpdated(() => {
   }
 
   .chart-container {
-    height: 400px !important;
+    height: 300px !important;
   }
 
   .view-more-section {
