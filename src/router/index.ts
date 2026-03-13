@@ -165,6 +165,16 @@ const routes = [
               }),
             },
           ],
+        },
+        {
+          path: '/research/datamasking',
+          name: 'DataMasking',
+          meta: {
+            title: '数据脱敏',
+            requiresAuth: true,
+            roles: ['RESEARCHER', 'ADMIN'],
+          },
+          component: () => import('@/views/research/datamasking/index.vue'),
         }
       ]
     },

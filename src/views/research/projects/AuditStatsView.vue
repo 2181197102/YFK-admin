@@ -58,44 +58,44 @@
         border
       >
         <el-collapse-item title="访问位置统计" name="location">
-          <el-descriptions column="2" border>
+          <el-descriptions :column="2" border>
             <el-descriptions-item label="异常位置访问">
-              <span class="stat-value">{{ trustData.access_location.num_ad }}</span>
+              <span class="stat-value">{{ Number(trustData.access_location.num_ad) }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="正常位置访问">
-              <span class="stat-value">{{ trustData.access_location.num_nd }}</span>
+              <span class="stat-value">{{ Number(trustData.access_location.num_nd) }}</span>
             </el-descriptions-item>
           </el-descriptions>
         </el-collapse-item>
         
         <el-collapse-item title="访问时段统计" name="period">
-          <el-descriptions column="2" border>
+          <el-descriptions :column="2" border>
             <el-descriptions-item label="正常时段访问">
-              <span class="stat-value">{{ trustData.access_period.num_ni }}</span>
+              <span class="stat-value">{{ Number(trustData.access_period.num_ni) }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="异常时段访问">
-              <span class="stat-value">{{ trustData.access_period.num_ui }}</span>
+              <span class="stat-value">{{ Number(trustData.access_period.num_ui) }}</span>
             </el-descriptions-item>
           </el-descriptions>
         </el-collapse-item>
         
         <el-collapse-item title="操作行为统计" name="behavior">
-          <el-descriptions column="3" border>
-            <el-descriptions-item label="添加">{{ trustData.operation_behavior.num_add }}</el-descriptions-item>
-            <el-descriptions-item label="复制">{{ trustData.operation_behavior.num_copy }}</el-descriptions-item>
-            <el-descriptions-item label="删除">{{ trustData.operation_behavior.num_delete }}</el-descriptions-item>
-            <el-descriptions-item label="下载">{{ trustData.operation_behavior.num_download }}</el-descriptions-item>
-            <el-descriptions-item label="修改">{{ trustData.operation_behavior.num_revise }}</el-descriptions-item>
-            <el-descriptions-item label="查看">{{ trustData.operation_behavior.num_view }}</el-descriptions-item>
+          <el-descriptions :column="3" border>
+            <el-descriptions-item label="添加">{{ Number(trustData.operation_behavior.num_add) }}</el-descriptions-item>
+            <el-descriptions-item label="复制">{{ Number(trustData.operation_behavior.num_copy) }}</el-descriptions-item>
+            <el-descriptions-item label="删除">{{ Number(trustData.operation_behavior.num_delete) }}</el-descriptions-item>
+            <el-descriptions-item label="下载">{{ Number(trustData.operation_behavior.num_download) }}</el-descriptions-item>
+            <el-descriptions-item label="修改">{{ Number(trustData.operation_behavior.num_revise) }}</el-descriptions-item>
+            <el-descriptions-item label="查看">{{ Number(trustData.operation_behavior.num_view) }}</el-descriptions-item>
           </el-descriptions>
         </el-collapse-item>
         
         <el-collapse-item title="数据敏感度统计" name="sensitivity">
-          <el-descriptions column="4" border>
-            <el-descriptions-item label="级别1">{{ trustData.data_sensitivity.num1 }}</el-descriptions-item>
-            <el-descriptions-item label="级别2">{{ trustData.data_sensitivity.num2 }}</el-descriptions-item>
-            <el-descriptions-item label="级别3">{{ trustData.data_sensitivity.num3 }}</el-descriptions-item>
-            <el-descriptions-item label="级别4">{{ trustData.data_sensitivity.num4 }}</el-descriptions-item>
+          <el-descriptions :column="4" border>
+            <el-descriptions-item label="级别1">{{ Number(trustData.data_sensitivity.num1) }}</el-descriptions-item>
+            <el-descriptions-item label="级别2">{{ Number(trustData.data_sensitivity.num2) }}</el-descriptions-item>
+            <el-descriptions-item label="级别3">{{ Number(trustData.data_sensitivity.num3) }}</el-descriptions-item>
+            <el-descriptions-item label="级别4">{{ Number(trustData.data_sensitivity.num4) }}</el-descriptions-item>
           </el-descriptions>
         </el-collapse-item>
       </el-collapse>
@@ -119,6 +119,16 @@
           <el-icon v-if="loading"><Loading /></el-icon>
           <span>获取医疗数据</span>
         </el-button>
+        
+        <el-button 
+          type="success" 
+          @click="handleDataMasking"
+          :disabled="!canProceed || loading"
+          :loading="loading"
+        >
+          <el-icon><Lock /></el-icon>
+          <span>数据脱敏</span>
+        </el-button>
       </div>
     </el-card>
   </div>
@@ -128,7 +138,7 @@
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { Loading } from '@element-plus/icons-vue';
+import { Loading, Lock } from '@element-plus/icons-vue';
 import { TrustValueResponse, QueryParams } from '@/api/researchers/types';
 
 // 路由实例
@@ -226,6 +236,34 @@ const handleGetMedicalData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// 数据脱敏处理
+const handleDataMasking = () => {
+  if (!canProceed.value) {
+    ElMessage.warning('信任值不足，无法进行数据脱敏');
+    return;
+  }
+  
+  if (!isDataCountValid.value) {
+    ElMessage.warning(`数据量超出限制范围，请输入${dataCountHint.value}`);
+    return;
+  }
+  
+  // 准备脱敏参数（直接传递用户选择的数据量）
+  const maskingParams = {
+    queryParams: queryParams,
+    trustData: trustData,
+    dataCount: dataCount.value
+  };
+  
+  // 跳转到数据脱敏页面
+  router.push({
+    path: '/research/datamasking',
+    query: {
+      maskingParams: JSON.stringify(maskingParams)
+    }
+  });
 };
 
 // 返回上一页

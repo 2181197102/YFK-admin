@@ -100,7 +100,7 @@ export interface TrustValueResponse {
 }
 
 // 定义单个data_code的详细信息结构（对应后端Disease_data表的字段）
-interface DataCodeDetail {
+export interface DataCodeDetail {
   id: number;                  // 主键ID
   disease_code: string;        // 病种编码
   data_code: string;           // 数据项编码（与请求的data_codes对应）
@@ -135,4 +135,54 @@ export interface MedicalDataResponse {
   is_working_time?: boolean;     // 是否为工作时间（可选）
   // 新增：每个data_code对应的详细信息，键为data_code，值为详细信息对象
   data_code_details: Record<string, DataCodeDetail>;
+}
+
+/**
+ * 数据脱敏相关类型定义
+ */
+
+// 脱敏方法枚举
+export type DataMaskingMethod = 'k-匿名' | '差分隐私' | '对抗生成网络';
+
+// 应用场景枚举
+export type DataMaskingScenario = '决策' | '展示' | '分析' | '预测';
+
+// 文件上传响应
+export interface FileUploadResponse {
+  filename: string;
+  headers: string[];
+  message: string;
+  status: 'success' | 'error';
+}
+
+// 脱敏处理请求参数
+export interface DataMaskingRequest {
+  selected_headers: string[];                    // 需要脱敏的字段
+  record_count: number;                          // 记录数量
+  scenario: DataMaskingScenario;                  // 应用场景
+  method: DataMaskingMethod;                      // 脱敏方法
+  data_code_details: Record<string, DataCodeDetail>; // 数据项详细信息映射
+  results: Array<{                               // 医疗数据结果
+    [key: string]: any;                          // 动态字段，包含选择的数据项
+    medical_record_num: string;                  // 病历编号
+    institution: string;                         // 机构标识
+  }>;
+}
+
+// 脱敏处理响应（匹配后端实际返回格式）
+export interface DataMaskingResponse {
+  result: {
+    task_id: number;              // 任务ID
+  };
+  message: string;
+  status: 'ok' | 'error';
+  code: number;
+}
+
+// 数据查看响应
+export interface DataViewResponse {
+  table_html: string;             // 数据表格HTML
+  data_type: '原始' | '脱敏';     // 数据类型
+  message: string;
+  status: 'success' | 'error';
 }

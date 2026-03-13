@@ -40,6 +40,7 @@ declare module 'vue-router/auto-routes' {
     '/patient/medical-history/': RouteRecordInfo<'/patient/medical-history/', '/patient/medical-history', Record<never, never>, Record<never, never>>,
     '/profile/': RouteRecordInfo<'/profile/', '/profile', Record<never, never>, Record<never, never>>,
     '/register/': RouteRecordInfo<'/register/', '/register', Record<never, never>, Record<never, never>>,
+    '/research/datamasking/': RouteRecordInfo<'/research/datamasking/', '/research/datamasking', Record<never, never>, Record<never, never>>,
     '/research/projects/': RouteRecordInfo<'/research/projects/', '/research/projects', Record<never, never>, Record<never, never>>,
     '/research/projects/AuditStatsView': RouteRecordInfo<'/research/projects/AuditStatsView', '/research/projects/AuditStatsView', Record<never, never>, Record<never, never>>,
     '/research/projects/MedicalDataView': RouteRecordInfo<'/research/projects/MedicalDataView', '/research/projects/MedicalDataView', Record<never, never>, Record<never, never>>,
