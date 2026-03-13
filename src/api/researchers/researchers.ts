@@ -23,37 +23,6 @@ const api = axios.create({
   }
 });
 
-// // 响应拦截器
-// api.interceptors.response.use(
-//   (response) => {
-//     return response;
-//   },
-//   (error) => {
-//     // 统一错误处理
-//     let errorMessage = '请求失败，请稍后重试';
-//     if (error.response) {
-//       switch (error.response.status) {
-//         case 400:
-//           errorMessage = '请求参数错误';
-//           break;
-//         case 401:
-//           errorMessage = '未授权，请重新登录';
-//           break;
-//         case 404:
-//           errorMessage = '请求的资源不存在';
-//           break;
-//         case 500:
-//           errorMessage = '服务器内部错误';
-//           break;
-//       }
-//     } else if (error.request) {
-//       errorMessage = '网络错误，无法连接服务器';
-//     }
-    
-//     return Promise.reject(new Error(errorMessage));
-//   }
-// );
-
 export const getDiseaseDataCodes = async (): Promise<DiseaseDataCodeResponse> => {
   const response = await api.get<DiseaseDataCodeResponse>(
     'http://127.0.0.1:7878/api/medical_record/disease-data-codes'

@@ -196,7 +196,7 @@ const routes = [
             meta: {
               title: '家庭患者管理',
               requiresAuth: true,
-              roles: ['DOCTOR', 'ADMIN'], // 只有家庭医生可以访问
+              roles: ['FAMILY_DOCTOR', 'ADMIN'], // 只有家庭医生可以访问
             },
             children: [
               {
@@ -204,40 +204,57 @@ const routes = [
                 name: 'PatientList',
                 component: () => import('@/views/doctor/family-patients/PatientList.vue'),
               },
+              // {
+              //   path: 'detail/:medicalRecordNum',
+              //   name: 'Patient_detail',
+              //   // 注意：不要加 title，否则菜单就会渲染它
+              //   meta: {
+              //     requiresAuth: true,
+              //     roles: ['FAMILY_DOCTOR', 'ADMIN'],
+              //   },
+              //   component: () => import('@/views/doctor/family-patients/PatientDetail.vue'),
+              //   props: route => ({
+              //     medicalRecordNum: route.params.medicalRecordNum,
+              //     patientName: route.query.patientName as string,
+              //     patientIdCard: route.query.patientIdCard as string,
+              //   }),
+              // },
               {
-                path: '',
-                name: 'Patient_detail',
+                path: 'all-records/:patientIdCard',
+                name: 'Patient_all_records',
                 // 注意：不要加 title，否则菜单就会渲染它
                 meta: {
                   requiresAuth: true,
-                  roles: ['DOCTOR', 'ADMIN'],
+                  roles: ['FAMILY_DOCTOR', 'ADMIN'],
                 },
-                component: () => import('@/views/doctor/family-patients/PatientDetail.vue'),
+                component: () => import('@/views/doctor/family-patients/PatientAllRecords.vue'),
                 props: route => ({
-                  institutions: route.query.institutions as string,
-                  diseases: route.query.diseases as string,
-                  institutionNames: route.query.institutionNames as string,
-                  diseaseNames: route.query.diseaseNames as string,
-                }),
-              },
-              {
-                path: '',
-                name: 'TrustValue',
-                // 注意：不要加 title，否则菜单就会渲染它
-                meta: {
-                  requiresAuth: true,
-                  roles: ['DOCTOR', 'ADMIN'],
-                },
-                component: () => import('@/views/doctor/family-patients/TrustValue.vue'),
-                props: route => ({
-                  institutions: route.query.institutions as string,
-                  diseases: route.query.diseases as string,
-                  institutionNames: route.query.institutionNames as string,
-                  diseaseNames: route.query.diseaseNames as string,
+                  patientIdCard: route.params.patientIdCard,
+                  patientName: route.query.patientName as string,
                 }),
               },
             ],
-          }
+          },
+          {
+            path: '/doctor/emergency/list',
+            name: 'emergency_doctors',
+            meta: {
+              title: '急救患者管理',
+              requiresAuth: true,
+              roles: ['EMERGENCY_DOCTOR', 'ADMIN'], 
+            },
+            component: () => import('@/views/doctor/emergency/list/PatientList.vue'),
+          },
+          {
+            path: '/doctor/emergency/add',
+            name: 'emergency_add_PatientList',
+            meta: {
+              title: '患者增加',
+              requiresAuth: true,
+              roles: ['DOCTOR', 'ADMIN'], 
+            },
+            component: () => import('@/views/doctor/emergency/add/add_Patient.vue'),
+          },
         ]
       },
 
